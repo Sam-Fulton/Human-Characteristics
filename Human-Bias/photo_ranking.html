@@ -44,58 +44,58 @@
 
 <div class="rank-container">
   <div class="rank-svg" ondrop="drop(event)" ondragover="allowDrop(event)">
-    <svg height="200" width="100%">
-      <rect x="0" y="0" width="100%" height="100%" fill="#fff" stroke="#000" stroke-width="2"/>
-    </svg>
     <text class="rank-label" x="50%" y="50%">Poor</text>
     <text class="rank-label" x="90%" y="50%" text-anchor="end">Rich</text>
-    <image class="rank-image" x="20" y="150" width="60" height="60" draggable="true" ondragstart="dragStart(event)"></image>
-    <image class="rank-image" x="100" y="150" width="60" height="60" draggable="true" ondragstart="dragStart(event)"></image>
-    <image class="rank-image" x="180" y="150" width="60" height="60" draggable="true" ondragstart="dragStart(event)"></image>
+    <image class="rank-image" x="30%" y="50%" width="60" height="60" draggable="true" ondragstart="dragStart(event)"></image>
+    <image class="rank-image" x="40%" y="50%" width="60" height="60" draggable="true" ondragstart="dragStart(event)"></image>
+    <image class="rank-image" x="50%" y="50%" width="60" height="60" draggable="true" ondragstart="dragStart(event)"></image>
+    <image class="rank-image" x="60%" y="50%" width="60" height="60" draggable="true" ondragstart="dragStart(event)"></image>
+    <image class="rank-image" x="70%" y="50%" width="60" height="60" draggable="true" ondragstart="dragStart(event)"></image>
   </div>
 </div>
 
 <script>
-  function dragStart(event) {
-    event.dataTransfer.setData('text/plain', event.target.outerHTML);
+ function dragStart(event) {
+  event.dataTransfer.setData('text/plain', event.target.dataset.index);
+}
+
+function allowDrop(event) {
+  event.preventDefault();
+}
+
+function drop(event) {
+  event.preventDefault();
+  const draggedIndex = event.dataTransfer.getData('text/plain');
+  const droppedIndex = event.target.dataset.index;
+
+  if (draggedIndex !== droppedIndex) {
+    const draggedImage = document.querySelector(`[data-index="${draggedIndex}"]`);
+    const droppedImage = document.querySelector(`[data-index="${droppedIndex}"]`);
+
+    // Make sure both images exist before swapping
+    if (draggedImage && droppedImage) {
+      const parent = draggedImage.parentNode;
+
+      // Swap the positions of the dragged and dropped images
+      const temp = document.createElement('div');
+      parent.insertBefore(temp, draggedImage);
+      parent.insertBefore(draggedImage, droppedImage);
+      parent.insertBefore(droppedImage, temp);
+      parent.removeChild(temp);
+
+      // Update the data-index attributes after swapping
+      draggedImage.dataset.index = droppedIndex;
+      droppedImage.dataset.index = draggedIndex;
+    }
   }
-
-  function allowDrop(event) {
-    event.preventDefault();
-  }
-
-  function drop(event) {
-    event.preventDefault();
-    const draggedHTML = event.dataTransfer.getData('text/plain');
-    const draggedElement = document.createElement('div');
-    draggedElement.innerHTML = draggedHTML;
-    const draggedImage = draggedElement.firstChild;
-
-    const svg = document.querySelector('.rank-svg');
-
-    const point = svg.createSVGPoint();
-    point.x = event.clientX;
-    point.y = event.clientY;
-    const svgPoint = point.matrixTransform(svg.getScreenCTM().inverse());
-
-    draggedImage.setAttribute('x', svgPoint.x - draggedImage.width.baseVal.value / 2);
-    draggedImage.setAttribute('y', svgPoint.y - draggedImage.height.baseVal.value / 2);
-
-    svg.appendChild(draggedImage);
-
-    addDragDropListeners(draggedImage);
-  }
+}
 
 function addDragDropListeners(element) {
   element.draggable = true;
-
-  element.addEventListener('dragstart', function (event) {
-    event.dataTransfer.setData('text/plain', '');
-    dragStart(event);
-  });
+  element.ondragstart = dragStart;
 }
 
-  function loadRandomImages(numImages) {
+function loadRandomImages(numImages) {
   const images = document.querySelectorAll('.rank-image');
   const owner = 'Sam-Fulton';
   const repo = 'Human-Characteristics';
@@ -114,7 +114,7 @@ function addDragDropListeners(element) {
       if (Array.isArray(data)) {
         // Filter image files
         const imageFiles = data
-          .filter(file => file.type === 'file' && file.name.match(/\.(jpg|jpeg|png|gif)$/i));
+          .filter(file => file.type === 'file' && file.name.match(/\.(svg)$/i));
 
         if (imageFiles.length >= numImages) {
           const randomImageFiles = getRandomElements(imageFiles, numImages);
@@ -122,18 +122,17 @@ function addDragDropListeners(element) {
           images.forEach((image, index) => {
             const imageUrl = randomImageFiles[index].download_url;
 
-            const imgElement = new Image();
+            // Use embed instead of image
+            const embedElement = document.createElement('embed');
+            embedElement.src = imageUrl;
+            embedElement.width = 100;
+            embedElement.height = 100;
+            embedElement.dataset.index = index;
 
-            imgElement.src = imageUrl;
+            image.parentNode.replaceChild(embedElement, image);
 
-            imgElement.width = 60;
-            imgElement.height = 60;
-            imgElement.draggable = true;
-            imgElement.ondragstart = dragStart;
-
-            image.parentNode.replaceChild(imgElement, image);
-
-            addDragDropListeners(imgElement);
+            // Add drag-and-drop listeners to the new element
+            addDragDropListeners(embedElement);
           });
         } else {
           console.error(`Not enough valid image files found in the repository. Required: ${numImages}, Found: ${imageFiles.length}`);
@@ -145,11 +144,13 @@ function addDragDropListeners(element) {
     .catch(error => console.error('Error fetching directory contents:', error));
 }
 
-  function getRandomElements(array, numElements) {
-    const shuffledArray = array.sort(() => Math.random() - 0.5);
-    return shuffledArray.slice(0, numElements);
-  }
-  loadRandomImages(3);
+function getRandomElements(array, numElements) {
+  const shuffledArray = array.sort(() => Math.random() - 0.5);
+  return shuffledArray.slice(0, numElements);
+}
+
+// Load 7 random images
+loadRandomImages(7);
 </script>
 
 </body>
