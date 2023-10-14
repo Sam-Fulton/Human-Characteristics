@@ -22,7 +22,7 @@
 
     .rank-svg {
       width: 100%;
-      max-width: 600px; /* Adjust the maximum width as needed */
+      max-width: 600px; 
       position: relative;
     }
 
@@ -49,24 +49,21 @@
     </svg>
     <text class="rank-label" x="50%" y="50%">Poor</text>
     <text class="rank-label" x="90%" y="50%" text-anchor="end">Rich</text>
-    <image class="rank-image" x="20" y="150" width="60" height="60" href="" draggable="true" ondragstart="dragStart(event)"></image>
-    <image class="rank-image" x="100" y="150" width="60" height="60" href="" draggable="true" ondragstart="dragStart(event)"></image>
-    <image class="rank-image" x="180" y="150" width="60" height="60" href="" draggable="true" ondragstart="dragStart(event)"></image>
+    <image class="rank-image" x="20" y="150" width="60" height="60" draggable="true" ondragstart="dragStart(event)"></image>
+    <image class="rank-image" x="100" y="150" width="60" height="60" draggable="true" ondragstart="dragStart(event)"></image>
+    <image class="rank-image" x="180" y="150" width="60" height="60" draggable="true" ondragstart="dragStart(event)"></image>
   </div>
 </div>
 
 <script>
-  // Function to handle drag start
   function dragStart(event) {
     event.dataTransfer.setData('text/plain', event.target.outerHTML);
   }
 
-  // Function to allow drop
   function allowDrop(event) {
     event.preventDefault();
   }
 
-  // Function to handle drop
   function drop(event) {
     event.preventDefault();
     const draggedHTML = event.dataTransfer.getData('text/plain');
@@ -76,60 +73,83 @@
 
     const svg = document.querySelector('.rank-svg');
 
-    // Convert client coordinates to SVG coordinates
     const point = svg.createSVGPoint();
     point.x = event.clientX;
     point.y = event.clientY;
     const svgPoint = point.matrixTransform(svg.getScreenCTM().inverse());
 
-    // Move the dragged image to the drop position
     draggedImage.setAttribute('x', svgPoint.x - draggedImage.width.baseVal.value / 2);
     draggedImage.setAttribute('y', svgPoint.y - draggedImage.height.baseVal.value / 2);
 
-    // Add the dragged image to the SVG
     svg.appendChild(draggedImage);
 
-    // Attach drag-and-drop event listeners to the new element
     addDragDropListeners(draggedImage);
   }
 
-  // Function to add drag-and-drop event listeners
-  function addDragDropListeners(element) {
-    element.draggable = true;
-    element.ondragstart = dragStart;
+function addDragDropListeners(element) {
+  element.draggable = true;
+
+  element.addEventListener('dragstart', function (event) {
+    event.dataTransfer.setData('text/plain', '');
+    dragStart(event);
+  });
+}
+
+  function loadRandomImages(numImages) {
+  const images = document.querySelectorAll('.rank-image');
+  const owner = 'Sam-Fulton';
+  const repo = 'Human-Characteristics';
+  const path = 'resources/images';
+
+  const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+
+  fetch(apiUrl)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Failed to fetch directory contents. Status: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (Array.isArray(data)) {
+        // Filter image files
+        const imageFiles = data
+          .filter(file => file.type === 'file' && file.name.match(/\.(jpg|jpeg|png|gif)$/i));
+
+        if (imageFiles.length >= numImages) {
+          const randomImageFiles = getRandomElements(imageFiles, numImages);
+
+          images.forEach((image, index) => {
+            const imageUrl = randomImageFiles[index].download_url;
+
+            const imgElement = new Image();
+
+            imgElement.src = imageUrl;
+
+            imgElement.width = 60;
+            imgElement.height = 60;
+            imgElement.draggable = true;
+            imgElement.ondragstart = dragStart;
+
+            image.parentNode.replaceChild(imgElement, image);
+
+            addDragDropListeners(imgElement);
+          });
+        } else {
+          console.error(`Not enough valid image files found in the repository. Required: ${numImages}, Found: ${imageFiles.length}`);
+        }
+      } else {
+        console.error('Invalid data format received from the GitHub API.');
+      }
+    })
+    .catch(error => console.error('Error fetching directory contents:', error));
+}
+
+  function getRandomElements(array, numElements) {
+    const shuffledArray = array.sort(() => Math.random() - 0.5);
+    return shuffledArray.slice(0, numElements);
   }
-
-  // Load initial images
-  function loadImages() {
-    const images = document.querySelectorAll('.rank-image');
-    images.forEach((image, index) => {
-      // Replace 'your-github-username', 'your-repo-name', and 'path/to/images' with your GitHub details
-      const owner = 'Sam-Fulton';
-      const repo = 'Human-Characteristics';
-      const path = 'Human-Bias/images/'; // Adjust the path to the folder containing images
-
-      // GitHub API endpoint for listing contents of a directory
-      const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-
-      // Fetch the contents of the directory
-      fetch(apiUrl)
-        .then(response => response.json())
-        .then(data => {
-          // Filter out non-image files
-          const imageFiles = data.filter(file => file.type === 'file' && file.name.match(/\.(jpg|jpeg|png|gif)$/i));
-
-          // Get a random image file
-          const randomImage = imageFiles[Math.floor(Math.random() * imageFiles.length)];
-
-          // Set the href of the image element
-          image.setAttribute('href', randomImage.download_url);
-        })
-        .catch(error => console.error('Error fetching images:', error));
-    });
-  }
-
-  // Load initial images on page load
-  loadImages();
+  loadRandomImages(3);
 </script>
 
 </body>
