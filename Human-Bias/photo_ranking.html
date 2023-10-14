@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f4f4f4;
+    }
+
+    .rank-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 80%;
+    }
+
+    .rank-svg {
+      width: 100%;
+      max-width: 600px; /* Adjust the maximum width as needed */
+      position: relative;
+    }
+
+    .rank-label {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      white-space: nowrap;
+    }
+
+    .rank-image {
+      max-width: 100px;
+      height: auto;
+      cursor: move;
+    }
+  </style>
+</head>
+<body>
+
+<div class="rank-container">
+  <div class="rank-svg" ondrop="drop(event)" ondragover="allowDrop(event)">
+    <svg height="200" width="100%">
+      <rect x="0" y="0" width="100%" height="100%" fill="#fff" stroke="#000" stroke-width="2"/>
+    </svg>
+    <text class="rank-label" x="50%" y="50%">Poor</text>
+    <text class="rank-label" x="90%" y="50%" text-anchor="end">Rich</text>
+    <image class="rank-image" x="20" y="150" width="60" height="60" href="" draggable="true" ondragstart="dragStart(event)"></image>
+    <image class="rank-image" x="100" y="150" width="60" height="60" href="" draggable="true" ondragstart="dragStart(event)"></image>
+    <image class="rank-image" x="180" y="150" width="60" height="60" href="" draggable="true" ondragstart="dragStart(event)"></image>
+  </div>
+</div>
+
+<script>
+  // Function to handle drag start
+  function dragStart(event) {
+    event.dataTransfer.setData('text/plain', event.target.outerHTML);
+  }
+
+  // Function to allow drop
+  function allowDrop(event) {
+    event.preventDefault();
+  }
+
+  // Function to handle drop
+  function drop(event) {
+    event.preventDefault();
+    const draggedHTML = event.dataTransfer.getData('text/plain');
+    const draggedElement = document.createElement('div');
+    draggedElement.innerHTML = draggedHTML;
+    const draggedImage = draggedElement.firstChild;
+
+    const svg = document.querySelector('.rank-svg');
+
+    // Convert client coordinates to SVG coordinates
+    const point = svg.createSVGPoint();
+    point.x = event.clientX;
+    point.y = event.clientY;
+    const svgPoint = point.matrixTransform(svg.getScreenCTM().inverse());
+
+    // Move the dragged image to the drop position
+    draggedImage.setAttribute('x', svgPoint.x - draggedImage.width.baseVal.value / 2);
+    draggedImage.setAttribute('y', svgPoint.y - draggedImage.height.baseVal.value / 2);
+
+    // Add the dragged image to the SVG
+    svg.appendChild(draggedImage);
+
+    // Attach drag-and-drop event listeners to the new element
+    addDragDropListeners(draggedImage);
+  }
+
+  // Function to add drag-and-drop event listeners
+  function addDragDropListeners(element) {
+    element.draggable = true;
+    element.ondragstart = dragStart;
+  }
+
+  // Load initial images
+  function loadImages() {
+    const images = document.querySelectorAll('.rank-image');
+    images.forEach((image, index) => {
+      // Replace 'your-github-username', 'your-repo-name', and 'path/to/images' with your GitHub details
+      const owner = 'Sam-Fulton';
+      const repo = 'Human-Characteristics';
+      const path = 'Human-Bias/images/'; // Adjust the path to the folder containing images
+
+      // GitHub API endpoint for listing contents of a directory
+      const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+
+      // Fetch the contents of the directory
+      fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+          // Filter out non-image files
+          const imageFiles = data.filter(file => file.type === 'file' && file.name.match(/\.(jpg|jpeg|png|gif)$/i));
+
+          // Get a random image file
+          const randomImage = imageFiles[Math.floor(Math.random() * imageFiles.length)];
+
+          // Set the href of the image element
+          image.setAttribute('href', randomImage.download_url);
+        })
+        .catch(error => console.error('Error fetching images:', error));
+    });
+  }
+
+  // Load initial images on page load
+  loadImages();
+</script>
+
+</body>
+</html>
