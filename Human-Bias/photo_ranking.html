@@ -15,22 +15,27 @@
 
     .rank-container {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
       width: 80%;
+      position: absolute;
+      justify-content: center;
     }
 
     .rank-svg {
       width: 100%;
-      max-width: 600px; 
+      max-width: 1200px; 
       position: relative;
+      align-items: center;
+      justify-content: center;
+      display: flex;
     }
 
     .rank-label {
-      position: absolute;
+      position: relative;
       top: 50%;
-      transform: translateY(-50%);
       white-space: nowrap;
+      font-size: 40px;
     }
 
     .rank-image {
@@ -38,21 +43,24 @@
       height: auto;
       cursor: move;
     }
+
+    .reload-button {
+        position: absolute;
+        bottom: 30%;
+    }
+
   </style>
 </head>
 <body>
 
 <div class="rank-container">
-  <div class="rank-svg" ondrop="drop(event)" ondragover="allowDrop(event)">
-    <text class="rank-label" x="50%" y="50%">Poor</text>
-    <text class="rank-label" x="90%" y="50%" text-anchor="end">Rich</text>
-    <image class="rank-image" x="30%" y="50%" width="60" height="60" draggable="true" ondragstart="dragStart(event)"></image>
-    <image class="rank-image" x="40%" y="50%" width="60" height="60" draggable="true" ondragstart="dragStart(event)"></image>
-    <image class="rank-image" x="50%" y="50%" width="60" height="60" draggable="true" ondragstart="dragStart(event)"></image>
-    <image class="rank-image" x="60%" y="50%" width="60" height="60" draggable="true" ondragstart="dragStart(event)"></image>
-    <image class="rank-image" x="70%" y="50%" width="60" height="60" draggable="true" ondragstart="dragStart(event)"></image>
+    <text class="rank-label" x="0%" y="50%">Poor</text>
+  <div class="rank-svg" ondrop="drop(event)" ondragover="allowDrop(event)" x=50%>
   </div>
+  <text class="rank-label" x="90%" y="50%" text-anchor="end">Rich</text>
 </div>
+
+<button class="reload-button" onclick="reloadImagesAndUpload()">Next</button>
 
 <script>
  function dragStart(event) {
@@ -72,18 +80,15 @@ function drop(event) {
     const draggedImage = document.querySelector(`[data-index="${draggedIndex}"]`);
     const droppedImage = document.querySelector(`[data-index="${droppedIndex}"]`);
 
-    // Make sure both images exist before swapping
     if (draggedImage && droppedImage) {
       const parent = draggedImage.parentNode;
 
-      // Swap the positions of the dragged and dropped images
       const temp = document.createElement('div');
       parent.insertBefore(temp, draggedImage);
       parent.insertBefore(draggedImage, droppedImage);
       parent.insertBefore(droppedImage, temp);
       parent.removeChild(temp);
 
-      // Update the data-index attributes after swapping
       draggedImage.dataset.index = droppedIndex;
       droppedImage.dataset.index = draggedIndex;
     }
@@ -96,7 +101,8 @@ function addDragDropListeners(element) {
 }
 
 function loadRandomImages(numImages) {
-  const images = document.querySelectorAll('.rank-image');
+  const embedContainer = document.querySelector('.rank-svg');
+
   const owner = 'Sam-Fulton';
   const repo = 'Human-Characteristics';
   const path = 'resources/images';
@@ -114,24 +120,27 @@ function loadRandomImages(numImages) {
       if (Array.isArray(data)) {
         // Filter image files
         const imageFiles = data
-          .filter(file => file.type === 'file' && file.name.match(/\.(svg)$/i));
+          .filter(file => file.type === 'file' && file.name.match(/\.(png)$/i));
 
         if (imageFiles.length >= numImages) {
           const randomImageFiles = getRandomElements(imageFiles, numImages);
 
-          images.forEach((image, index) => {
-            const imageUrl = randomImageFiles[index].download_url;
+          randomImageFiles.forEach((file, index) => {
+            const imageUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/${path}/${file.name}`;
 
-            // Use embed instead of image
             const embedElement = document.createElement('embed');
             embedElement.src = imageUrl;
-            embedElement.width = 100;
-            embedElement.height = 100;
+            embedElement.width = '100px';
+
+            const xPosition = 30 + index * 10;
+            embedElement.setAttribute('x', `${xPosition}%`);
+
             embedElement.dataset.index = index;
+            embedElement.draggable = true;
+            embedElement.ondragstart = dragStart;
 
-            image.parentNode.replaceChild(embedElement, image);
+            embedContainer.appendChild(embedElement);
 
-            // Add drag-and-drop listeners to the new element
             addDragDropListeners(embedElement);
           });
         } else {
@@ -149,8 +158,20 @@ function getRandomElements(array, numElements) {
   return shuffledArray.slice(0, numElements);
 }
 
-// Load 7 random images
-loadRandomImages(7);
+function reloadImagesAndUpload() {
+  sendFileToGoogleDrive();
+  
+  const embedContainer = document.querySelector('.rank-svg');
+  embedContainer.innerHTML = '';
+
+  loadRandomImages(5);
+}
+
+function sendFileToGoogleDrive() {
+  console.log('Sending file to Google Drive...');
+}
+
+loadRandomImages(5);
 </script>
 
 </body>
