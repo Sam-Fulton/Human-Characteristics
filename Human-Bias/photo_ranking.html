@@ -54,10 +54,10 @@
 <body>
 
 <div class="rank-container">
-    <text class="rank-label" x="0%" y="50%">Poor</text>
+    <text class="rank-label" id="label1" x="0%" y="50%">Poor</text>
   <div class="rank-svg" ondrop="drop(event)" ondragover="allowDrop(event)" x=50%>
   </div>
-  <text class="rank-label" x="90%" y="50%" text-anchor="end">Rich</text>
+  <text class="rank-label" id="label2" x="90%" y="50%" text-anchor="end">Rich</text>
 </div>
 
 <button class="reload-button" onclick="reloadImagesAndUpload()">Next</button>
@@ -118,7 +118,6 @@ function loadRandomImages(numImages) {
     })
     .then(data => {
       if (Array.isArray(data)) {
-        // Filter image files
         const imageFiles = data
           .filter(file => file.type === 'file' && file.name.match(/\.(png)$/i));
 
@@ -169,10 +168,80 @@ function reloadImagesAndUpload() {
 
 function sendFileToGoogleDrive() {
   console.log('Sending file to Google Drive...');
+
+  const label1 = document.getElementById('label1').textContent;
+  const label2 = document.getElementById('label2').textContent;
+
+  const embedElements = document.querySelectorAll('.rank-svg embed');
+
+  const content = {
+    label1: label1,
+    label2: label2,
+    images: [],
+  };
+
+  embedElements.forEach(embedElement => {
+    const index = embedElement.dataset.index;
+    const imageUrl = embedElement.src;
+    const filename = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+
+    content.images.push({
+      index: index,
+      filename: filename,
+    });
+  });
+
+  const fileMetadata = {
+    name: 'user.json',
+    mimeType: 'application/json',
+  };
+
+  const media = {
+    mimeType: 'application/json',
+    body: JSON.stringify(content),
+  };
+
+  const token = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token;
+
+  fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=media', {
+    method: 'POST',
+    headers: new Headers({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    }),
+    body: JSON.stringify(content),
+  })
+    .then(response => response.json())
+    .then(data => console.log('File uploaded successfully:', data))
+    .catch(error => console.error('Error uploading file:', error));
 }
+
+
+/*
+gapi.load('client:auth2', initClient);
+
+function initClient() {
+  gapi.load('auth2', function() {
+  gapi.auth2.init({
+    client_id: 'YOUR_CLIENT_ID',
+  });
+  })};
+
+  function onSignIn(googleUser) {
+  const profile = googleUser.getBasicProfile();
+  const userId = profile.getId();
+  const userName = profile.getName();
+  const userEmail = profile.getEmail();
+
+  console.log('User ID: ' + userId);
+  console.log('User Name: ' + userName);
+  console.log('User Email: ' + userEmail);
+}*/
 
 loadRandomImages(5);
 </script>
+<script src="https://apis.google.com/js/api.js"></script>
+
 
 </body>
 </html>
