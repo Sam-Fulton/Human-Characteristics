@@ -3,10 +3,11 @@ function getRandomElements(array, numElements) {
     return shuffledArray.slice(0, numElements);
   }
 
-function reloadImagesAndUpload() {
-    initDriveAPI().then(()=>{
-        sendFileToGoogleDrive();
-    });
+  function reloadImagesAndUpload() {
+    const googleUser = gapi.auth2.getAuthInstance().currentUser.get();
+    const userId = googleUser.getId();
+
+    sendFileToGoogleDrive(userId);
 
     const embedContainer = document.querySelector('.rank-svg');
     embedContainer.innerHTML = '';
