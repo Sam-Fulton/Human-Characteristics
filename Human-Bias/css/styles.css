@@ -1,0 +1,45 @@
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f4f4f4;
+  }
+  
+  .rank-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 80%;
+    position: absolute;
+    justify-content: center;
+  }
+  
+  .rank-svg {
+    width: 100%;
+    max-width: 1200px; 
+    position: relative;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+  }
+  
+  .rank-label {
+    position: relative;
+    top: 50%;
+    white-space: nowrap;
+    font-size: 40px;
+  }
+  
+  .rank-image {
+    max-width: 100px;
+    height: auto;
+    cursor: move;
+  }
+  
+  .reload-button {
+    position: absolute;
+    bottom: 30%;
+  }
+  
