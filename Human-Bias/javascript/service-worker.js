@@ -1,7 +1,7 @@
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.2.4/workbox-sw.js');
 
 workbox.precaching.precacheAndRoute([
-  { url: '/photo_ranking.html', revision: '1' },
+  { url: '../main.html', revision: '1' },
 ]);
 
 workbox.routing.registerRoute(

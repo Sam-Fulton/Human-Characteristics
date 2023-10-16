@@ -1,10 +1,33 @@
-function initGoogleAPI() {
+function handleAPILoadError(error) {
+    console.error('Error loading API:', error);
+  }
+
+
+function signIn() {
+    gapi.auth2.getAuthInstance().signIn().then(function () {
+        const googleUser = gapi.auth2.getAuthInstance().currentUser.get();
+        onSignIn(googleUser);
+    });
+}
+
+function onSignIn(googleUser) {
+    const profile = googleUser.getBasicProfile();
+    const userId = profile.getId();
+    const userName = profile.getName();
+    const userEmail = profile.getEmail();
+
+    console.log('User ID: ' + userId);
+    console.log('User Name: ' + userName);
+    console.log('User Email: ' + userEmail);
+}
+
+
+function initGoogleAPI(googleUser) {
     gapi.load('client:auth2', function () {
       gapi.auth2.init({
         client_id: '1011280470420-sbgbbes073p7bkvlg2glcnnu572f4o3o.apps.googleusercontent.com',
       }).then(() => {
         gapi.client.init({
-            apiKey: 'AIzaSyCJI2oI9likw_EY19QIgMgWCpMi7-PGq0s',
             clientId: '1011280470420-sbgbbes073p7bkvlg2glcnnu572f4o3o.apps.googleusercontent.com',
             discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
             scope: 'https://www.googleapis.com/auth/drive.file',

@@ -4,48 +4,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://apis.google.com/js/api.js"></script>
-  <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
-<div class="rank-container">
-    <text class="rank-label" id="label1" x="0%" y="50%">Poor</text>
-  <div class="rank-svg" ondrop="drop(event)" ondragover="allowDrop(event)" x=50%>
-  </div>
-  <text class="rank-label" id="label2" x="90%" y="50%" text-anchor="end">Rich</text>
-</div>
+<h1>Sign In</h1>
 
-<button class="reload-button" onclick="reloadImagesAndUpload()">Next</button>
-
-<script src="javascript/utils.js"></script>
-<script src="javascript/drag-drop.js"></script>
-<script src="javascript/image-loader.js"></script>
-<script src="javascript/google-drive.js"></script>
-<script src="javascript/service-worker.js"></script>
+<button onclick="signInWithGoogle()">Sign In with Google</button>
 
 <script>
-    gapi.load('client:auth2', initClient);
+    gapi.load('auth2', function () {
+        gapi.auth2.init({
+            client_id: '1011280470420-sbgbbes073p7bkvlg2glcnnu572f4o3o.apps.googleusercontent.com',
+            scope: 'https://www.googleapis.com/auth/drive',
+        });
+    });
 
-    function initClient() {
-        gapi.load('auth2', function () {
-            gapi.auth2.init({
-                client_id: '1011280470420-sbgbbes073p7bkvlg2glcnnu572f4o3o.apps.googleusercontent.com',
-            });
+    function signInWithGoogle() {
+        gapi.auth2.getAuthInstance().signIn().then(function (googleUser) {
+            window.location.href = 'main.html';
         });
     }
-
-    function onSignIn(googleUser) {
-        const profile = googleUser.getBasicProfile();
-        const userId = profile.getId();
-        const userName = profile.getName();
-        const userEmail = profile.getEmail();
-
-        console.log('User ID: ' + userId);
-        console.log('User Name: ' + userName);
-        console.log('User Email: ' + userEmail);
-    }
-
-    loadRandomImages(5);
 </script>
 
 </body>
