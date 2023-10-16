@@ -4,10 +4,10 @@ function getRandomElements(array, numElements) {
   }
 
   function reloadImagesAndUpload() {
-    const googleUser = gapi.auth2.getAuthInstance().currentUser.get();
-    const userId = googleUser.getId();
+    //const googleUser = gapi.auth2.getAuthInstance().currentUser.get();
+    //const userId = googleUser.getId();
 
-    sendFileToGoogleDrive(userId);
+    //sendFileToGoogleDrive(userId);
 
     const embedContainer = document.querySelector('.rank-svg');
     embedContainer.innerHTML = '';

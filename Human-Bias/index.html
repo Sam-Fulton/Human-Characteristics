@@ -3,28 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://apis.google.com/js/api.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
-<body>
+<body onload="init()">
+    <script>
 
-<h1>Sign In</h1>
+        function handleCredentialResponse(response){
+            console.log(response)
+        }
+        function init(){
+            google.accounts.id.initialize({
+                client_id:'1011280470420-sbgbbes073p7bkvlg2glcnnu572f4o3o.apps.googleusercontent.com',
+                auto_select: true,
+                callback:handleCredentialResponse
+            });
+            google.accounts.id.prompt();
+        }
 
-<button onclick="signInWithGoogle()">Sign In with Google</button>
+    
 
-<script>
-    gapi.load('auth2', function () {
-        gapi.auth2.init({
-            client_id: '1011280470420-sbgbbes073p7bkvlg2glcnnu572f4o3o.apps.googleusercontent.com',
-            scope: 'https://www.googleapis.com/auth/drive',
-        });
-    });
+    </script>
 
-    function signInWithGoogle() {
-        gapi.auth2.getAuthInstance().signIn().then(function (googleUser) {
-            window.location.href = 'main.html';
-        });
-    }
-</script>
-
-</body>
+</body >
 </html>
