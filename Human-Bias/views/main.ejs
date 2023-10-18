@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://apis.google.com/js/api.js"></script>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="manifest" href="/manifest.json">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/javascript/service-worker.js')
+        .then(function (registration) {
+          console.log('Service Worker registered with scope:', registration.scope);
+        })
+        .catch(function (error) {
+          console.error('Service Worker registration failed:', error);
+        });
+    }
+  </script>
+</head>
+
+<body>
+
+  <div class="rank-container">
+    <text class="rank-label" id="label1" x="0%" y="50%">Poor</text>
+    <div class="rank-svg" ondrop="drop(event)" ondragover="allowDrop(event)" x=50%>
+    </div>
+    <text class="rank-label" id="label2" x="90%" y="50%" text-anchor="end">Rich</text>
+  </div>
+
+  <button class="reload-button" onclick="reloadImagesAndUpload()">Next</button>
+
+  <script src="javascript/utils.js"></script>
+  <script src="javascript/drag-drop.js"></script>
+  <script src="javascript/image-loader.js"></script>
+  <script src="javascript/google-drive.js"></script>
+
+  <script>
+    gapi.load('client:auth2', function () {
+      gapi.auth2.init({
+        client_id: '1011280470420-sbgbbes073p7bkvlg2glcnnu572f4o3o.apps.googleusercontent.com',
+      }).then(function () {
+        const isUserSignedIn = gapi.auth2.getAuthInstance().isSignedIn.get();
+
+        if (isUserSignedIn) {
+          initGoogleAPI();
+        } else {
+          console.log('User not signed in.');
+        }
+      });
+    });
+
+
+    loadRandomImages(5);
+  </script>
+
+</body>
+
+</html>
