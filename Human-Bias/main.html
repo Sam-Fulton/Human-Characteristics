@@ -6,18 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://apis.google.com/js/api.js"></script>
   <link rel="stylesheet" href="css/styles.css">
-  <link rel="manifest" href="/manifest.json">
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/javascript/service-worker.js')
-        .then(function (registration) {
-          console.log('Service Worker registered with scope:', registration.scope);
-        })
-        .catch(function (error) {
-          console.error('Service Worker registration failed:', error);
-        });
-    }
-  </script>
 </head>
 
 <body>
@@ -35,8 +23,21 @@
   <script src="javascript/drag-drop.js"></script>
   <script src="javascript/image-loader.js"></script>
   <script src="javascript/google-drive.js"></script>
+  <script src="javascript/service-worker.js"></script>
 
   <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('javascript/service-worker.js')
+          .then((registration) => {
+            console.log('Service Worker registered with scope:', registration.scope);
+          })
+          .catch((error) => {
+            console.error('Service Worker registration failed:', error);
+          });
+      });
+    }
+
     gapi.load('client:auth2', function () {
       gapi.auth2.init({
         client_id: '1011280470420-sbgbbes073p7bkvlg2glcnnu572f4o3o.apps.googleusercontent.com',
@@ -46,7 +47,7 @@
         if (isUserSignedIn) {
           initGoogleAPI();
         } else {
-          console.log('User not signed in.');
+          console.log('User not signed in.'); // Handle accordingly, redirect to sign-in page, etc.
         }
       });
     });

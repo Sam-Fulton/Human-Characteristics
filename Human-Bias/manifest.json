@@ -2,7 +2,7 @@
     "name": "Human bias",
     "short_name": "Human bias",
     "description": "",
-    "start_url": "/index.html",
+    "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#000000"
