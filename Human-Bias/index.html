@@ -25,13 +25,15 @@
     <script>
 
         function handleCredentialResponse(response){
-            console.log(response)
+            console.log(response);
 
             if(response.error){
-                console.log(response.error)
+                console.log(response.error);
             }
             else{
-                window.location.href = "/rank"
+                const idToken = response.credential;
+                console.log(idToken);
+                window.location.href = "/rank";
             }
         }
     </script>

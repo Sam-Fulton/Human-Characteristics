@@ -5,8 +5,20 @@ const app = express();
 const port = 5000;
 
 app.use((req, res, next) => {
-  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
   next();
+});
+
+app.get('/public/javascript/:file', (req, res) => {
+  const fileName = req.params.file;
+  const filePath = path.join(__dirname, `../public/javascript/${fileName}`);
+  res.sendFile(filePath);
+});
+
+app.get('/public/css/:file', (req, res) => {
+  const fileName = req.params.file;
+  const filePath = path.join(__dirname, `../public/css/${fileName}`);
+  res.sendFile(filePath);
 });
 
 app.get('/', (req, res) => {
