@@ -1,7 +1,7 @@
-importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.2.4/workbox-sw.js');
+/*importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.2.4/workbox-sw.js');
 
 workbox.precaching.precacheAndRoute([
-  { url: '../main.html', revision: '1' },
+  { url: '../../main.html', revision: '1' },
 ]);
 
 workbox.routing.registerRoute(
@@ -9,4 +9,4 @@ workbox.routing.registerRoute(
   new workbox.strategies.StaleWhileRevalidate({
     cacheName: 'github-images',
   })
-);
+);*/

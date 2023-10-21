@@ -24,18 +24,35 @@
     </div>
     <script>
 
-        function handleCredentialResponse(response){
-            console.log(response);
+function handleCredentialResponse(response) {
+    const token = response.credential;
 
-            if(response.error){
-                console.log(response.error);
-            }
-            else{
-                const idToken = response.credential;
-                console.log(idToken);
-                window.location.href = "/rank";
-            }
+    console.log('Received Token:', token);
+
+    sessionStorage.setItem('userToken', token);
+
+    fetch('http://localhost:5000/handle-token', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token }),
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
         }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Server Response:', data);
+
+        window.location.href = '/rank';
+    })
+    .catch(error => console.error('Error sending token to server:', error));
+}
+
+
     </script>
 
 </body >

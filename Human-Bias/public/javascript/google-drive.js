@@ -1,43 +1,4 @@
-function handleAPILoadError(error) {
-    console.error('Error loading API:', error);
-  }
-
-
-function signIn() {
-    gapi.auth2.getAuthInstance().signIn().then(function () {
-        const googleUser = gapi.auth2.getAuthInstance().currentUser.get();
-        onSignIn(googleUser);
-    });
-}
-
-function onSignIn(googleUser) {
-    const profile = googleUser.getBasicProfile();
-    const userId = profile.getId();
-    const userName = profile.getName();
-    const userEmail = profile.getEmail();
-
-    console.log('User ID: ' + userId);
-    console.log('User Name: ' + userName);
-    console.log('User Email: ' + userEmail);
-}
-
-
-function initGoogleAPI(googleUser) {
-    gapi.load('client:auth2', function () {
-      gapi.auth2.init({
-        client_id: '1011280470420-sbgbbes073p7bkvlg2glcnnu572f4o3o.apps.googleusercontent.com',
-      }).then(() => {
-        gapi.client.init({
-            clientId: '1011280470420-sbgbbes073p7bkvlg2glcnnu572f4o3o.apps.googleusercontent.com',
-            discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"],
-            scope: 'https://www.googleapis.com/auth/drive.file',
-        });
-  
-        loadRandomImages(5);
-      });
-    });
-  }
-  function sendFileToGoogleDrive(userId) {
+function sendFileToGoogleDrive(userId, accessToken) {
     console.log('Sending file to Google Drive...');
 
     const label1 = document.getElementById('label1').textContent;
@@ -65,18 +26,17 @@ function initGoogleAPI(googleUser) {
 
     const fileContent = JSON.stringify(content);
 
-    gapi.client.drive.files.create({
-        resource: {
-            name: 'user.json',
-            mimeType: 'application/json',
+    fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=media', {
+        method: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + accessToken,
+            'Content-Type': 'application/json',
         },
-        media: {
-            mimeType: 'application/json',
-            body: fileContent,
-        },
+        body: fileContent,
     })
-    .then(response => {
-        console.log('File uploaded successfully:', response.result);
+    .then(response => response.json())
+    .then(data => {
+        console.log('File uploaded successfully:', data);
     })
     .catch(error => {
         console.error('Error uploading file:', error);
