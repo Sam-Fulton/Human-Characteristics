@@ -1,29 +1,26 @@
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
-const fs = require('fs');
+const { OAuth2Client } = require('google-auth-library');
 const { GoogleAuth } = require('google-auth-library');
 const { google } = require('googleapis');
 
 const app = express();
 const port = 5000;
+const clientId = '1011280470420-sbgbbes073p7bkvlg2glcnnu572f4o3o.apps.googleusercontent.com';
 
-// Middleware
 app.use(express.static(path.join(__dirname, '../public')));
 app.use(bodyParser.json());
 
-// Google Drive API setup
-const auth = new GoogleAuth({
+const driveAuth = new GoogleAuth({
   scopes: 'https://www.googleapis.com/auth/drive',
 });
-const driveService = google.drive({ version: 'v3', auth });
+const driveService = google.drive({ version: 'v3', auth: driveAuth });
 
-// Endpoint for handling file upload
 app.post('/upload-to-drive', async (req, res) => {
   try {
     const { userId, label1, label2, images } = req.body;
 
-    // Build content object
     const content = {
       userId: userId,
       label1: label1,
@@ -31,7 +28,6 @@ app.post('/upload-to-drive', async (req, res) => {
       images: [],
     };
 
-    // Add image details to content
     images.forEach((image) => {
       content.images.push({
         index: image.index,
@@ -39,10 +35,8 @@ app.post('/upload-to-drive', async (req, res) => {
       });
     });
 
-    // File content as JSON
     const fileContent = JSON.stringify(content);
 
-    // Create file in Google Drive
     const file = await driveService.files.create({
       requestBody: {
         name: `user_${userId}.json`,
@@ -63,7 +57,40 @@ app.post('/upload-to-drive', async (req, res) => {
   }
 });
 
-// ... Rest of your existing server code
+app.post('/handle-token', async (req, res) => {
+  const { token } = req.body;
+
+  try {
+    console.log('server token: ' + token)
+    const client = new OAuth2Client(clientId);
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: clientId,
+    });
+
+    const payload = ticket.getPayload();
+    const userId = payload.sub;
+    const userName = payload.name;
+    const userEmail = payload.email;
+
+    console.log("ID: " + userId);
+    console.log('Full Name: ' + userName);
+    console.log('Email: ' + userEmail);
+
+    res.json({ success: true, userId, userName, userEmail });
+  } catch (error) {
+    console.error('Error decoding token:', error);
+    res.status(400).json({ success: false, error: 'Invalid token' });
+  }
+});
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../index.html'));
+});
+
+app.get('/rank', (req, res) => {
+  res.sendFile(path.join(__dirname, '../main.html'));
+});
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
