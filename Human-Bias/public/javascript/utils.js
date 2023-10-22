@@ -32,7 +32,9 @@ function decodeTokenAndReload() {
 }
 
 function reloadImagesAndUpload() {
-  sendFileToGoogleDrive();
+  getUserToken()
+  .then(userToken => sendFileToGoogleDrive(userToken))
+  .catch(error => console.error(error));
 
   const embedContainer = document.querySelector('.rank-svg');
   embedContainer.innerHTML = '';
