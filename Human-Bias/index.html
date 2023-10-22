@@ -3,57 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <title>Sign In</title>
 </head>
 <body>
-    <div id="g_id_onload"
-        data-client_id="1011280470420-sbgbbes073p7bkvlg2glcnnu572f4o3o.apps.googleusercontent.com"
-        data-context="signin"
-        data-ux_mode="popup"
-        data-callback="handleCredentialResponse"
-        data-auto_prompt="false">
-    </div>
+  <h1>Sign In</h1>
+  <button id="signInButton">Sign In with Google</button>
 
-    <div class="g_id_signin"
-        data-type="standard"
-        data-shape="pill"
-        data-theme="filled_blue"
-        data-text="signin_with"
-        data-size="large"
-        data-logo_alignment="left">
-    </div>
-    <script>
-
-function handleCredentialResponse(response) {
-    const token = response.credential;
-
-    console.log('Received Token:', token);
-
-    sessionStorage.setItem('userToken', token);
-
-    fetch('http://localhost:5000/handle-token', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token }),
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log('Server Response:', data);
-
-        window.location.href = '/rank';
-    })
-    .catch(error => console.error('Error sending token to server:', error));
-}
-
-
-    </script>
-
-</body >
+  <script src="/javascript/client.js"></script>
+</body>
 </html>

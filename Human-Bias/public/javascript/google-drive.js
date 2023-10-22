@@ -1,10 +1,14 @@
-function sendFileToGoogleDrive(userId, accessToken) {
+function sendFileToGoogleDrive() {
     console.log('Sending file to Google Drive...');
 
     const label1 = document.getElementById('label1').textContent;
     const label2 = document.getElementById('label2').textContent;
 
     const embedElements = document.querySelectorAll('.rank-svg embed');
+
+    // Assume you have a function getTokenFromStore to get the user token from your token store
+    const userToken = getTokenFromStore();
+    const userId = userToken ? userToken.user_id : null;
 
     const content = {
         userId: userId,
@@ -26,17 +30,22 @@ function sendFileToGoogleDrive(userId, accessToken) {
 
     const fileContent = JSON.stringify(content);
 
-    fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=media', {
+    fetch('http://localhost:5000/upload-to-drive', {
         method: 'POST',
         headers: {
-            'Authorization': 'Bearer ' + accessToken,
             'Content-Type': 'application/json',
         },
-        body: fileContent,
+        body: JSON.stringify({
+            content: content,
+        }),
     })
     .then(response => response.json())
     .then(data => {
-        console.log('File uploaded successfully:', data);
+        if (data.success) {
+            console.log('File uploaded successfully. File ID:', data.fileId);
+        } else {
+            console.error('Error uploading file:', data.error);
+        }
     })
     .catch(error => {
         console.error('Error uploading file:', error);
