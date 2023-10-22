@@ -12,7 +12,18 @@ const clientSecret = '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';
 const redirectUri = 'http://localhost:5000/callback';
 const driveScope = 'https://www.googleapis.com/auth/drive';
 
+const serviceAccountKey = require('./credentials/human-bias-qlab-bf0c366a80c1.json');
+
 const oauth2Client = new OAuth2Client(clientId, clientSecret, redirectUri);
+
+const jwtClient = new google.auth.JWT(
+  serviceAccountKey.client_email,
+  null,
+  serviceAccountKey.private_key,
+  driveScope
+);
+
+const driveServiceAccount = google.drive({ version: 'v3', auth: jwtClient });
 
 let tokenStore = {}
 
@@ -49,9 +60,9 @@ app.get('/callback', async (req, res) => {
 
     const userId = getUserIdFromIdToken(tokens.id_token);
 
-    tokenStore = {tokens, 'userId' : userId};
+    tokenStore = { tokens, 'userId': userId };
     console.log(tokenStore);
-    
+
     res.redirect('/rank');
   } catch (error) {
     console.error('Error handling authorization code:', error);
@@ -60,8 +71,7 @@ app.get('/callback', async (req, res) => {
 });
 
 function getAccessToken(code) {
-  const oAuth2Client = new OAuth2Client(clientId, clientSecret, redirectUri);
-  return oAuth2Client.getToken(code);
+  return oauth2Client.getToken(code);
 }
 
 function getUserIdFromIdToken(idToken) {
@@ -71,21 +81,21 @@ function getUserIdFromIdToken(idToken) {
 
 app.post('/upload-to-drive', async (req, res) => {
   const { content } = req.body;
+  const userId = tokenStore.userId;
 
   try {
-    if (!tokenStore.tokens || !tokenStore.tokens.access_token) {
-      console.error('Access token not available. Reauthorize the user.');
-      return res.status(401).json({ success: false, error: 'Authorization required' });
+    const folderExists = await doesFolderExist(driveServiceAccount, 'ranking-output');
+    if (!folderExists) {
+      await createFolder(driveServiceAccount, 'ranking-output');
     }
 
-    oauth2Client.setCredentials(tokenStore.tokens);
+    const folderId = await getFolderId(driveServiceAccount, 'ranking-output');
 
-    const drive = google.drive({ version: 'v3', auth: oauth2Client });
-
-    const response = await drive.files.create({
+    const response = await driveServiceAccount.files.create({
       requestBody: {
-        name: 'user.json',
+        name: `${userId}.json`,
         mimeType: 'application/json',
+        parents: [folderId],
       },
       media: {
         mimeType: 'application/json',
@@ -99,7 +109,7 @@ app.post('/upload-to-drive', async (req, res) => {
     console.error('Error uploading file to Google Drive:', error);
 
     if (error.code === 401) {
-      return res.status(401).json({ success: false, error: 'Authorization required' });
+      // Handle authentication errors
     } else {
       res.status(500).json({ success: false, error: 'Internal Server Error' });
     }
@@ -149,6 +159,19 @@ const getFolderId = async (drive, folderName) => {
     throw error;
   }
 };
+
+async function listFiles() {
+  try {
+    const response = await driveServiceAccount.files.list({
+      q: "'root' in parents",
+    });
+
+    const files = response.data.files;
+    console.log('Files in the root directory:', files);
+  } catch (error) {
+    console.error('Error listing files:', error);
+  }
+}
 
 app.get('/rank', (req, res) => {
   res.sendFile(path.join(__dirname, '../main.html'));
