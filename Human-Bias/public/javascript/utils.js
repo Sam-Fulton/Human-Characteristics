@@ -31,8 +31,10 @@ function decodeTokenAndReload() {
   .catch(error => console.error('Error sending token to server:', error));
 }
 
-function reloadImagesAndUpload(userId, userToken) {
-  sendFileToGoogleDrive(userId, userToken);
+function reloadImagesAndUpload() {
+  getUserToken()
+  .then(userToken => sendFileToGoogleDrive(userToken))
+  .catch(error => console.error(error));
 
   const embedContainer = document.querySelector('.rank-svg');
   embedContainer.innerHTML = '';
