@@ -81,9 +81,9 @@ function getUserIdFromIdToken(idToken) {
 }
 
 app.post('/upload-to-drive', async (req, res) => {
-  const { content } = req.body;
+  const content = JSON.parse(req.body.content);
   const userId = content.userId;
-
+  
   try {
     const folderExists = await doesFolderExist(driveServiceAccount, 'ranking-output');
     if (!folderExists) {
@@ -94,7 +94,7 @@ app.post('/upload-to-drive', async (req, res) => {
 
     const response = await driveServiceAccount.files.create({
       requestBody: {
-        name: `${userId}.json`,
+        name: `ranking_data_${content.userId}.json`,
         mimeType: 'application/json',
         parents: [folderId],
       },
@@ -103,7 +103,6 @@ app.post('/upload-to-drive', async (req, res) => {
         body: JSON.stringify(content),
       },
     });
-
     console.log('File uploaded successfully:', response.data);
 
     res.json({ success: true, fileId: response.data.id });
