@@ -79,8 +79,6 @@ function getUserIdFromIdToken(idToken) {
   const decodedToken = jwt.decode(idToken);
   return decodedToken.sub;
 }
-let imageRankings = {};
-let imageList = [];
 
 app.post('/upload-to-drive', async (req, res) => {
   const { content } = req.body;
@@ -93,16 +91,6 @@ app.post('/upload-to-drive', async (req, res) => {
     }
 
     const folderId = await getFolderId(driveServiceAccount, 'ranking-output');
-
-    // Retrieve existing rankings or initialize if not present
-    const existingRankings = imageRankings[userId] || {};
-    const trueskillRankings = calculateTrueSkillRankings(existingRankings, content.images);
-
-    // Update in-memory rankings for the user
-    imageRankings[userId] = trueskillRankings;
-
-    // Update content with TrueSkill rankings
-    content.rankings = trueskillRankings;
 
     const response = await driveServiceAccount.files.create({
       requestBody: {
@@ -118,9 +106,6 @@ app.post('/upload-to-drive', async (req, res) => {
 
     console.log('File uploaded successfully:', response.data);
 
-    // Generate the updated list of images based on TrueSkill rankings
-    imageList = generateUpdatedImages(trueskillRankings);
-
     res.json({ success: true, fileId: response.data.id });
   } catch (error) {
     console.error('Error uploading file to Google Drive:', error);
@@ -132,28 +117,6 @@ app.post('/upload-to-drive', async (req, res) => {
     }
   }
 });
-
-function calculateTrueSkillRankings(existingRankings, userRankings) {
-  // Combine existing rankings with user rankings
-  const allRankings = { ...existingRankings, ...userRankings };
-
-  // Convert rankings to TrueSkill format
-  const players = Object.keys(allRankings).map(playerId => ({
-    id: playerId,
-    skill: ts.createRating(allRankings[playerId]),
-  }));
-
-  // Perform TrueSkill update
-  const updatedPlayers = ts.update(players);
-
-  // Extract updated rankings
-  const updatedRankings = {};
-  updatedPlayers.forEach(player => {
-    updatedRankings[player.id] = ts.expose(player.skill);
-  });
-
-  return updatedRankings;
-}
 
 const doesFolderExist = async (drive, folderName) => {
   try {
