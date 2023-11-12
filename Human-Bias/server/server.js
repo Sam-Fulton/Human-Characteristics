@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const { google } = require('googleapis');
 const { OAuth2Client } = require('google-auth-library');
 const jwt = require('jsonwebtoken');
+const trueskill = require('trueskill');
 
 const app = express();
 const port = 5000;
@@ -12,7 +13,7 @@ const clientSecret = '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';
 const redirectUri = 'http://localhost:5000/callback';
 const driveScope = 'https://www.googleapis.com/auth/drive';
 
-const serviceAccountKey = require('./credentials/human-bias-qlab-bf0c366a80c1.json');
+const serviceAccountKey = require('./credentials/service-account-key.json');
 
 const oauth2Client = new OAuth2Client(clientId, clientSecret, redirectUri);
 
@@ -78,10 +79,12 @@ function getUserIdFromIdToken(idToken) {
   const decodedToken = jwt.decode(idToken);
   return decodedToken.sub;
 }
+let imageRankings = {};
+let imageList = [];
 
 app.post('/upload-to-drive', async (req, res) => {
   const { content } = req.body;
-  const userId = tokenStore.userId;
+  const userId = content.userId;
 
   try {
     const folderExists = await doesFolderExist(driveServiceAccount, 'ranking-output');
@@ -90,6 +93,16 @@ app.post('/upload-to-drive', async (req, res) => {
     }
 
     const folderId = await getFolderId(driveServiceAccount, 'ranking-output');
+
+    // Retrieve existing rankings or initialize if not present
+    const existingRankings = imageRankings[userId] || {};
+    const trueskillRankings = calculateTrueSkillRankings(existingRankings, content.images);
+
+    // Update in-memory rankings for the user
+    imageRankings[userId] = trueskillRankings;
+
+    // Update content with TrueSkill rankings
+    content.rankings = trueskillRankings;
 
     const response = await driveServiceAccount.files.create({
       requestBody: {
@@ -104,6 +117,10 @@ app.post('/upload-to-drive', async (req, res) => {
     });
 
     console.log('File uploaded successfully:', response.data);
+
+    // Generate the updated list of images based on TrueSkill rankings
+    imageList = generateUpdatedImages(trueskillRankings);
+
     res.json({ success: true, fileId: response.data.id });
   } catch (error) {
     console.error('Error uploading file to Google Drive:', error);
@@ -115,6 +132,28 @@ app.post('/upload-to-drive', async (req, res) => {
     }
   }
 });
+
+function calculateTrueSkillRankings(existingRankings, userRankings) {
+  // Combine existing rankings with user rankings
+  const allRankings = { ...existingRankings, ...userRankings };
+
+  // Convert rankings to TrueSkill format
+  const players = Object.keys(allRankings).map(playerId => ({
+    id: playerId,
+    skill: ts.createRating(allRankings[playerId]),
+  }));
+
+  // Perform TrueSkill update
+  const updatedPlayers = ts.update(players);
+
+  // Extract updated rankings
+  const updatedRankings = {};
+  updatedPlayers.forEach(player => {
+    updatedRankings[player.id] = ts.expose(player.skill);
+  });
+
+  return updatedRankings;
+}
 
 const doesFolderExist = async (drive, folderName) => {
   try {
