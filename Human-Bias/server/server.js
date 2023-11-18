@@ -169,11 +169,13 @@ app.get('/all-images', async (req, res) => {
   try {
     console.log("IMAGES_URI : " + IMAGES_URI);
     const response = await fetch(IMAGES_URI);
+    console.log("RESPONSE : " + response);
     if (!response.ok) {
       throw new Error(`Failed to fetch directory contents. Status: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
+    console.log("DATA : " + data);
     res.json(data.filter(file => file.type === 'file' && file.name.match(/\.(png)$/i)));
   } catch (error) {
     console.error('Error fetching directory contents from GitHub:', error);
