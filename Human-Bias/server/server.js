@@ -29,6 +29,7 @@ const {
 } = process.env;
 
 import { updateRankings } from './openskill-utils.mjs';
+import { Console } from 'console';
 
 const oauth2Client = new OAuth2Client(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
 
@@ -113,13 +114,13 @@ app.post('/upload-to-drive', async (req, res) => {
 
     const userRankings = await fetchUserRankings(userId, folderId);
 
-    const updatedUserRankings = updateRankings(userRankings, content.label2, content.images);
+    const updatedUserRankings = updateRankings(userRankings, content.label, content.images);
 
     await uploadRankings(userId, folderId, 'rankings_total.json', updatedUserRankings);
 
     const globalRankings = await fetchGlobalRankings();
 
-    const updatedGlobalRankings = updateRankings(globalRankings, content.label2, content.images);
+    const updatedGlobalRankings = updateRankings(globalRankings, content.label, content.images);
 
     await uploadRankings('global', null, 'rankings_total.json', updatedGlobalRankings);
 
@@ -145,6 +146,22 @@ app.post('/upload-to-drive', async (req, res) => {
     } else {
       res.status(500).json({ success: false, error: 'Internal Server Error' });
     }
+  }
+});
+
+app.get('/fetch-labels', async (req, res) => {
+  try {
+    const response = await fetch('https://raw.githubusercontent.com/Sam-Fulton/human-bias-images/main/labels.txt', {
+      headers: {
+        Authorization: `Bearer ${GITHUB_PERSONAL_ACCESS_TOKEN}`,
+      },
+    });
+    const labels = await response.text();
+    console.log(labels);
+    res.send(labels.split('\n').filter(label => label.trim() !== ''));
+  } catch (error) {
+    console.error('Error fetching labels:', error);
+    res.status(500).send({ error: 'Internal Server Error' });
   }
 });
 
