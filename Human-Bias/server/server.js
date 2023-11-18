@@ -24,7 +24,8 @@ const {
   DRIVE_SCOPE,
   SERVICE_ACCOUNT_CLIENT_EMAIL,
   SERVICE_ACCOUNT_PRIVATE_KEY,
-  IMAGES_URI
+  IMAGES_URI,
+  GITHUB_PERSONAL_ACCESS_TOKEN
 } = process.env;
 
 import { updateRankings } from './openskill-utils.mjs';
@@ -168,15 +169,17 @@ function getAllImageFiles() {
 app.get('/all-images', async (req, res) => {
   
   try {
-    console.log("IMAGES_URI : " + IMAGES_URI);
-    const response = await fetch(IMAGES_URI);
-    console.log("RESPONSE : " + response);
+    const response = await fetch(IMAGES_URI, {
+      headers: {
+        Authorization: `Bearer ${GITHUB_PERSONAL_ACCESS_TOKEN}`,
+      },
+    });
+
     if (!response.ok) {
       throw new Error(`Failed to fetch directory contents. Status: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
-    console.log("DATA : " + data);
     res.json(data.filter(file => file.type === 'file' && file.name.match(/\.(png)$/i)));
   } catch (error) {
     console.error('Error fetching directory contents from GitHub:', error);
