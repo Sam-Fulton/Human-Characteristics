@@ -11,6 +11,7 @@ function loadRandomImages(numImages) {
 
   const baseURL = window.location.origin;
   const apiUrl = `${baseURL}/all-images`;
+  console.log(apiUrl);
 
   fetch(apiUrl)
     .then(response => {
