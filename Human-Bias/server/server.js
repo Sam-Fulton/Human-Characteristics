@@ -144,8 +144,8 @@ app.post('/upload-to-drive', async (req, res) => {
 
 function getAllImageFiles() {
   const owner = 'Sam-Fulton';
-  const repo = 'Human-Characteristics';
-  const path = 'resources/images';
+  const repo = 'human-bias-images';
+  const path = 'images';
 
   const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
 
