@@ -1,9 +1,16 @@
-const express = require('express');
-const path = require('path');
-const bodyParser = require('body-parser');
-const { google } = require('googleapis');
-const { OAuth2Client } = require('google-auth-library');
-const jwt = require('jsonwebtoken');
+import express from 'express';
+import path from 'path';
+import bodyParser from 'body-parser';
+import { google } from 'googleapis';
+import { OAuth2Client } from 'google-auth-library';
+import jwt from 'jsonwebtoken';
+
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 
 const app = express();
 const port = 5000;
@@ -12,7 +19,10 @@ const clientSecret = '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';
 const redirectUri = 'http://localhost:5000/callback';
 const driveScope = 'https://www.googleapis.com/auth/drive';
 
-const serviceAccountKey = require('./credentials/human-bias-qlab-bf0c366a80c1.json');
+import serviceAccountKey from './credentials/service-account-key.json' assert {type: "json"};
+
+import { updateRankings } from './openskill-utils.mjs';
+
 
 const oauth2Client = new OAuth2Client(clientId, clientSecret, redirectUri);
 
@@ -79,21 +89,37 @@ function getUserIdFromIdToken(idToken) {
   return decodedToken.sub;
 }
 
+let allImageFiles = [];
+
 app.post('/upload-to-drive', async (req, res) => {
-  const { content } = req.body;
-  const userId = tokenStore.userId;
+  const content = JSON.parse(req.body.content);
+  const userId = content.userId;
 
   try {
-    const folderExists = await doesFolderExist(driveServiceAccount, 'ranking-output');
+    const folderExists = await doesFolderExist(driveServiceAccount, `ranking_output_${userId}`);
     if (!folderExists) {
-      await createFolder(driveServiceAccount, 'ranking-output');
+      await createFolder(driveServiceAccount, `ranking_output_${userId}`);
     }
 
-    const folderId = await getFolderId(driveServiceAccount, 'ranking-output');
+    allImageFiles = getAllImageFiles()
+
+    const folderId = await getFolderId(driveServiceAccount, `ranking_output_${userId}`);
+
+    const userRankings = await fetchUserRankings(userId, folderId);
+
+    const updatedUserRankings = updateRankings(userRankings, content.label2, content.images);
+
+    await uploadRankings(userId, folderId, 'rankings_total.json', updatedUserRankings);
+
+    const globalRankings = await fetchGlobalRankings();
+
+    const updatedGlobalRankings = updateRankings(globalRankings, content.label2, content.images);
+
+    await uploadRankings('global', null, 'rankings_total.json', updatedGlobalRankings);
 
     const response = await driveServiceAccount.files.create({
       requestBody: {
-        name: `${userId}.json`,
+        name: `ranking_data_${userId}_${Date.now()}.json`,
         mimeType: 'application/json',
         parents: [folderId],
       },
@@ -102,8 +128,8 @@ app.post('/upload-to-drive', async (req, res) => {
         body: JSON.stringify(content),
       },
     });
-
     console.log('File uploaded successfully:', response.data);
+
     res.json({ success: true, fileId: response.data.id });
   } catch (error) {
     console.error('Error uploading file to Google Drive:', error);
@@ -115,6 +141,41 @@ app.post('/upload-to-drive', async (req, res) => {
     }
   }
 });
+
+function getAllImageFiles() {
+  const owner = 'Sam-Fulton';
+  const repo = 'Human-Characteristics';
+  const path = 'resources/images';
+
+  const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+
+  return fetch(apiUrl)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Failed to fetch directory contents. Status: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (Array.isArray(data)) {
+        return data.map(file => file.name);
+      } else {
+        throw new Error('Invalid response format.');
+      }
+    });
+}
+
+function initialiseRankings(imageFilenames, label) {
+  const initialRanking = 0;
+  const rankings = { [label]: {} };
+
+  imageFilenames.forEach((filename) => {
+    rankings[label][filename] = initialRanking;
+  });
+
+  return rankings;
+}
+
 
 const doesFolderExist = async (drive, folderName) => {
   try {
@@ -180,3 +241,135 @@ app.get('/rank', (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
+
+async function fetchUserRankings(userId, folderId) {
+  try {
+    const file = await getFileByName(driveServiceAccount, folderId, 'rankings_total.json');
+    if (file) {
+      const content = await downloadFile(driveServiceAccount, file.id);
+      return JSON.parse(content);
+    } else {
+      return {};
+    }
+  } catch (error) {
+    console.error('Error fetching user rankings:', error);
+    throw error;
+  }
+}
+
+async function fetchGlobalRankings() {
+  try {
+    const file = await getFileByName(driveServiceAccount, null, 'rankings_total.json');
+    if (file) {
+      const content = await downloadFile(driveServiceAccount, file.id);
+      return JSON.parse(content);
+    } else {
+      return {};
+    }
+  } catch (error) {
+    console.error('Error fetching global rankings:', error);
+    throw error;
+  }
+}
+
+async function uploadRankings(userId, folderId, fileName, rankings) {
+  try {
+    const file = await getFileByName(driveServiceAccount, folderId, fileName);
+    if (file) {
+      await updateFile(driveServiceAccount, file.id, JSON.stringify(rankings));
+    } else {
+      await createFile(driveServiceAccount, folderId, fileName, JSON.stringify(rankings));
+    }
+  } catch (error) {
+    console.error('Error uploading rankings:', error);
+    throw error;
+  }
+}
+
+async function getFileByName(drive, folderId, fileName) {
+  try {
+    const query = folderId ? `'${folderId}' in parents` : "'root' in parents";
+    const response = await drive.files.list({
+      q: `name='${fileName}' and ${query}`,
+    });
+
+    if (response.data.files.length > 0) {
+      return response.data.files[0];
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error('Error getting file by name:', error);
+    throw error;
+  }
+}
+
+async function downloadFile(drive, fileId) {
+  try {
+    const response = await drive.files.get(
+      { fileId: fileId, alt: 'media' },
+      { responseType: 'stream' }
+    );
+
+    return new Promise((resolve, reject) => {
+      let content = '';
+      response.data
+        .on('data', chunk => {
+          content += chunk;
+        })
+        .on('end', () => {
+          resolve(content);
+        })
+        .on('error', error => {
+          reject(error);
+        });
+    });
+  } catch (error) {
+    console.error('Error downloading file:', error);
+    throw error;
+  }
+}
+
+async function createFile(drive, folderId, fileName, content) {
+  try {
+    const response = await drive.files.create({
+      requestBody: {
+        name: fileName,
+        mimeType: 'application/json',
+        parents: folderId ? [folderId] : undefined,
+      },
+      media: {
+        mimeType: 'application/json',
+        body: content,
+      },
+    });
+
+    console.log('File created successfully:', response.data);
+
+    return response.data;
+  } catch (error) {
+    console.error('Error creating file:', error);
+    throw error;
+  }
+}
+
+async function updateFile(drive, fileId, content) {
+  try {
+    const response = await drive.files.update({
+      fileId: fileId,
+      media: {
+        mimeType: 'application/json',
+        body: content,
+      },
+    });
+
+    console.log('File updated successfully:', response.data);
+
+    return response.data;
+  } catch (error) {
+    console.error('Error updating file:', error);
+    throw error;
+  }
+}
+
+

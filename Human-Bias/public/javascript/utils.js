@@ -32,14 +32,15 @@ function decodeTokenAndReload() {
 }
 
 function reloadImagesAndUpload() {
-  getUserToken()
-  .then(userToken => sendFileToGoogleDrive(userToken))
-  .catch(error => console.error(error));
-
-  const embedContainer = document.querySelector('.rank-svg');
-  embedContainer.innerHTML = '';
-
-  loadRandomImages(5);
+  if(numAvailableImages() >= 3){
+    getUserToken()
+    .then(userToken => sendFileToGoogleDrive(userToken))
+    .catch(error => console.error(error));
+    loadRandomImages(5);
+  }
+  else{
+    console.log('all images have been seen');
+  }
 }
 
 function getRandomElements(array, numElements) {
