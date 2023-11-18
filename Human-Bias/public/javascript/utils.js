@@ -32,14 +32,22 @@ function decodeTokenAndReload() {
 }
 
 function reloadImagesAndUpload() {
-  if(numAvailableImages() >= 3){
-    getUserToken()
-    .then(userToken => sendFileToGoogleDrive(userToken))
-    .catch(error => console.error(error));
-    loadRandomImages(5);
+  const dropdown = document.getElementById('traitDropdown');
+  const labelIndex = dropdown.selectedIndex;
+  
+  if (labelIndex == -1){
+    window.alert("Please choose a trait before submitting.");
   }
   else{
-    console.log('all images have been seen');
+    if(numAvailableImages() >= 3){
+      getUserToken()
+      .then(userToken => sendFileToGoogleDrive(userToken))
+      .catch(error => console.error(error));
+      loadRandomImages(5);
+    }
+    else{
+      console.log('all images have been seen');
+    }
   }
 }
 

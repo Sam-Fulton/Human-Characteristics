@@ -13,8 +13,8 @@ function getUserToken() {
 function sendFileToGoogleDrive(tokenStore) {
     console.log('Sending file to Google Drive...');
   
-    const label1 = document.getElementById('label1').textContent;
-    const label2 = document.getElementById('label2').textContent;
+    const dropdown = document.getElementById('traitDropdown');
+    const label = dropdown.options[dropdown.selectedIndex].text;
   
     const embedElements = document.querySelectorAll('.rank-svg embed');
   
@@ -24,8 +24,7 @@ function sendFileToGoogleDrive(tokenStore) {
   
     const content = {
       userId: userId,
-      label1: label1,
-      label2: label2,
+      label: label,
       images: [],
     };
   
