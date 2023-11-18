@@ -9,84 +9,69 @@ imagesAvailable = [];
 function loadRandomImages(numImages) {
   var embedContainer = document.querySelector('.rank-svg');
 
-  const owner = 'Sam-Fulton';
-  const repo = 'Human-Characteristics';
-  const path = 'resources/images';
-
-  const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+  const baseURL = window.location.origin;
+  const apiUrl = `${baseURL}/all-images`;
 
   fetch(apiUrl)
     .then(response => {
       if (!response.ok) {
-        throw new Error(`Failed to fetch directory contents. Status: ${response.status} ${response.statusText}`);
+        throw new Error(`Failed to fetch images from the server. Status: ${response.status} ${response.statusText}`);
       }
       return response.json();
     })
-    .then(data => {
-      if (Array.isArray(data)) {
-        const imageFiles = data
+    .then(imageFiles => {
+      imagesAvailable = imageFiles;
 
-          .filter(file => file.type === 'file' && file.name.match(/\.(png)$/i));
 
-        imagesAvailable = imageFiles;
-        if (isFirstLoad || usedFilenames.size < numImages) {
-          const uniqueImageFiles = getUniqueElements(imageFiles, numImages);
+      if (isFirstLoad || usedFilenames.size < numImages) {
+        const uniqueImageFiles = getUniqueElements(imageFiles, numImages);
 
-          uniqueImageFiles.forEach((file, index) => {
-            const filename = file.name;
-            const imageUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/${path}/${filename}`;
+        uniqueImageFiles.forEach((file, index) => {
+          const filename = file.name;
+          const imageUrl = `https://raw.githubusercontent.com/Sam-Fulton/human-bias-images/main/images/${filename}`;
 
-            const embedElement = document.createElement('embed');
-            embedElement.src = imageUrl;
-            embedElement.width = '100px';
+          const embedElement = document.createElement('embed');
+          embedElement.src = imageUrl;
+          embedElement.width = '100px';
 
-            const xPosition = 30 + index * 10;
-            embedElement.setAttribute('x', `${xPosition}%`);
+          const xPosition = 30 + index * 10;
+          embedElement.setAttribute('x', `${xPosition}%`);
 
-            embedElement.dataset.index = index;
-            embedElement.draggable = true;
-            embedElement.ondragstart = dragStart;
+          embedElement.dataset.index = index;
+          embedElement.draggable = true;
+          embedElement.ondragstart = dragStart;
 
-            embedContainer.appendChild(embedElement);
+          embedContainer.appendChild(embedElement);
 
-            addDragDropListeners(embedElement);
+          addDragDropListeners(embedElement);
 
-            usedFilenames.add(filename);
-          });
+          usedFilenames.add(filename);
+        });
 
-          isFirstLoad = false;
-        } else {
-
-          const embeddedElements = embedContainer.querySelectorAll('embed');
-          const numEmbeddedElements = embeddedElements.length;
-
-          console.log(embeddedElements);
-
-          if (numEmbeddedElements == 5) {
-            const newFilenames = getUniqueElements(imageFiles, 3);
-
-            console.log(newFilenames);
-
-            if (newFilenames.length < 3) {
-              // If there are not enough new images, prompt the user and end the page
-              alert("Not enough new images available. Please try again later.");
-              return;
-            }
-
-            newFilenames.forEach((file, index) => {
-              const imageUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/${path}/${file.name}`;
-
-              embeddedElements[index + 1].src = imageUrl;
-
-              usedFilenames.add(file.name);
-            });
-          }
-        }
+        isFirstLoad = false;
       } else {
-        console.error('Invalid data format received from the GitHub API.');
+        const embeddedElements = embedContainer.querySelectorAll('embed');
+        const numEmbeddedElements = embeddedElements.length;
+
+        if (numEmbeddedElements === 5) {
+          const newFilenames = getUniqueElements(imageFiles, 3);
+
+          if (newFilenames.length < 3) {
+            // If there are not enough new images, prompt the user and end the page
+            alert("Not enough new images available. Please try again later.");
+            return;
+          }
+
+          newFilenames.forEach((file, index) => {
+            const imageUrl = `https://raw.githubusercontent.com/Sam-Fulton/human-bias-images/main/images/${file.name}`;
+            embeddedElements[index + 1].src = imageUrl;
+
+            usedFilenames.add(file.name);
+          });
+        }
       }
     })
-    .catch(error => console.error('Error fetching directory contents:', error));
+    .catch(error => console.error('Error fetching images from the server:', error));
 }
 
 function getUniqueElements(array, numElements) {

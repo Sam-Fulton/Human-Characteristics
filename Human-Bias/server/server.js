@@ -4,33 +4,37 @@ import bodyParser from 'body-parser';
 import { google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
-
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import dotenv from 'dotenv';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+dotenv.config();
 
 const app = express();
 const port = 5000;
-const clientId = '1011280470420-sbgbbes073p7bkvlg2glcnnu572f4o3o.apps.googleusercontent.com';
-const clientSecret = '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';
-const redirectUri = 'http://localhost:5000/callback';
-const driveScope = 'https://www.googleapis.com/auth/drive';
 
-import serviceAccountKey from './credentials/service-account-key.json' assert {type: "json"};
+const {
+  CLIENT_ID,
+  CLIENT_SECRET,
+  REDIRECT_URI,
+  DRIVE_SCOPE,
+  SERVICE_ACCOUNT_CLIENT_EMAIL,
+  SERVICE_ACCOUNT_PRIVATE_KEY,
+  IMAGES_URI
+} = process.env;
 
 import { updateRankings } from './openskill-utils.mjs';
 
-
-const oauth2Client = new OAuth2Client(clientId, clientSecret, redirectUri);
+const oauth2Client = new OAuth2Client(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
 
 const jwtClient = new google.auth.JWT(
-  serviceAccountKey.client_email,
+  SERVICE_ACCOUNT_CLIENT_EMAIL,
   null,
-  serviceAccountKey.private_key,
-  driveScope
+  SERVICE_ACCOUNT_PRIVATE_KEY,
+  DRIVE_SCOPE
 );
 
 const driveServiceAccount = google.drive({ version: 'v3', auth: jwtClient });
@@ -55,7 +59,7 @@ app.get('/get-user-token', (req, res) => {
 app.get('/authorize', (req, res) => {
   const authUrl = oauth2Client.generateAuthUrl({
     access_type: 'offline',
-    scope: [driveScope, 'profile', 'email']
+    scope: [DRIVE_SCOPE, 'profile', 'email']
   });
 
   res.redirect(authUrl);
@@ -143,13 +147,8 @@ app.post('/upload-to-drive', async (req, res) => {
 });
 
 function getAllImageFiles() {
-  const owner = 'Sam-Fulton';
-  const repo = 'human-bias-images';
-  const path = 'images';
 
-  const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-
-  return fetch(apiUrl)
+  return fetch(IMAGES_URI)
     .then(response => {
       if (!response.ok) {
         throw new Error(`Failed to fetch directory contents. Status: ${response.status} ${response.statusText}`);
@@ -165,17 +164,44 @@ function getAllImageFiles() {
     });
 }
 
-function initialiseRankings(imageFilenames, label) {
-  const initialRanking = 0;
-  const rankings = { [label]: {} };
+app.get('/all-images', async (req, res) => {
+  
+  try {
+    const response = await fetch(IMAGES_URI);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch directory contents. Status: ${response.status} ${response.statusText}`);
+    }
 
-  imageFilenames.forEach((filename) => {
-    rankings[label][filename] = initialRanking;
-  });
+    const data = await response.json();
+    res.json(data.filter(file => file.type === 'file' && file.name.match(/\.(png)$/i)));
+  } catch (error) {
+    console.error('Error fetching directory contents from GitHub:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
-  return rankings;
-}
+app.get('/get-image-file/:filename', async (req, res) => {
+  const { filename } = req.params;
 
+  try {
+    const response = await fetch(`${IMAGES_URI}/${filename}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image. Status: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    if (data.type === 'file' && data.name.match(/\.(png)$/i)) {
+      const imageUrl = data.download_url;
+      res.redirect(imageUrl);
+    } else {
+      res.status(404).send('Image not found');
+    }
+  } catch (error) {
+    console.error('Error fetching image from GitHub:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
 
 const doesFolderExist = async (drive, folderName) => {
   try {
