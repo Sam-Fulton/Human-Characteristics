@@ -1,6 +1,6 @@
 function initiateAuthorization() {
   const clientId = '1011280470420-sbgbbes073p7bkvlg2glcnnu572f4o3o.apps.googleusercontent.com';
-  const redirectUri = 'http://localhost:5000/callback';
+  const redirectUri = 'https://human-bias-qlab.onrender.com/callback';
   const profileScope = 'profile';
   const emailScope = 'email';
 
