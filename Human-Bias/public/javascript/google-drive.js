@@ -41,9 +41,10 @@ function sendFileToGoogleDrive(tokenStore) {
     });
   
     const fileContent = JSON.stringify(content);
-  
+    
+    const baseURL = window.location.origin;
     // Make a request to upload to Google Drive with the obtained user token
-    fetch('http://localhost:5000/upload-to-drive', {
+    fetch(`${baseURL}/upload-to-drive`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
