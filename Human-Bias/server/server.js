@@ -157,7 +157,6 @@ app.get('/fetch-labels', async (req, res) => {
       },
     });
     const labels = await response.text();
-    console.log(labels);
     res.send(labels.split('\n').filter(label => label.trim() !== ''));
   } catch (error) {
     console.error('Error fetching labels:', error);

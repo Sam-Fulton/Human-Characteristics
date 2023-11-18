@@ -34,7 +34,7 @@ function decodeTokenAndReload() {
 function reloadImagesAndUpload() {
   const dropdown = document.getElementById('traitDropdown');
   const labelIndex = dropdown.selectedIndex;
-
+  
   if (labelIndex == -1){
     window.alert("Please choose a trait before submitting.");
   }

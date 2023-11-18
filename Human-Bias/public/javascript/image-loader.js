@@ -84,3 +84,17 @@ function getUniqueElements(array, numElements) {
 function numAvailableImages() {
   return getUniqueElements(imagesAvailable, imagesAvailable.length - usedFilenames.size).length;
 }
+
+function restart(){
+  usedFilenames.clear();
+  isFirstLoad = true;
+  imagesAvailable = [];
+  document.querySelector('.rank-svg').innerHTML = '';
+  const dropdown = document.getElementById('traitDropdown');
+  dropdown.selectedIndex = -1;
+  unlockDropdown(dropdown);
+  const selectedTrait = document.getElementById('selectedTrait');
+  selectedTrait.textContent = "Selected Trait: None";
+  loadRandomImages(5);
+  window.alert("Successfully restarted, please choice a trait and rank the images.");
+}

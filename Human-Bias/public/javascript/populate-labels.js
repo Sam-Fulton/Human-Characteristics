@@ -21,12 +21,22 @@ async function populateDropdown() {
         option.text = label;
         dropdown.add(option);
     });
+    dropdown.selectedIndex = -1;
 }
 
 function updateHeader() {
     const dropdown = document.getElementById('traitDropdown');
+    lockDropdown(dropdown);
     const selectedTrait = dropdown.options[dropdown.selectedIndex].text;
     document.getElementById('selectedTrait').innerText = "Selected Trait: " + selectedTrait;
+}
+
+function lockDropdown(dropdown) {
+    dropdown.disabled = true;
+}
+
+function unlockDropdown(dropdown) {
+    dropdown.disabled = false;
 }
 
 populateDropdown();
