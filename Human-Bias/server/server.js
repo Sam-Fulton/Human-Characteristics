@@ -167,6 +167,7 @@ function getAllImageFiles() {
 app.get('/all-images', async (req, res) => {
   
   try {
+    console.log("IMAGES_URI : " + IMAGES_URI);
     const response = await fetch(IMAGES_URI);
     if (!response.ok) {
       throw new Error(`Failed to fetch directory contents. Status: ${response.status} ${response.statusText}`);
@@ -265,7 +266,6 @@ app.get('/rank', (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
 });
 
 async function fetchUserRankings(userId, folderId) {
