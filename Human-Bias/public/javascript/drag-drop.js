@@ -31,33 +31,51 @@ function dragStart(event) {
   }
 
   function touchStart(event) {
-    const touch = event.touches[0];
-    const offsetX = touch.clientX - event.target.getBoundingClientRect().left;
-    const offsetY = touch.clientY - event.target.getBoundingClientRect().top;
-  
     event.preventDefault();
+    const touchedIndex = event.target.dataset.index;
+    
+    const touch = event.touches[0];
+    event.target.initialTouchX = touch.pageX;
+    event.target.initialTouchY = touch.pageY;
   
-    event.target.style.position = 'absolute';
-    event.target.style.zIndex = 1000;
-    moveAt(touch.pageX - offsetX, touch.pageY - offsetY);
+    event.target.addEventListener('touchmove', touchMove);
+    event.target.addEventListener('touchend', touchEnd);
   
-    function moveAt(pageX, pageY) {
-      event.target.style.left = pageX - event.target.offsetWidth / 2 + 'px';
-      event.target.style.top = pageY - event.target.offsetHeight / 2 + 'px';
-    }
-  
-    function onTouchMove(moveEvent) {
+    function touchMove(moveEvent) {
+      moveEvent.preventDefault();
       const touch = moveEvent.touches[0];
-      moveAt(touch.pageX - offsetX, touch.pageY - offsetY);
+  
+      const deltaX = touch.pageX - event.target.initialTouchX;
+      const deltaY = touch.pageY - event.target.initialTouchY;
+  
+      event.target.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
     }
   
-    function onTouchEnd() {
-      document.removeEventListener('touchmove', onTouchMove);
-      document.removeEventListener('touchend', onTouchEnd);
-    }
+    function touchEnd(endEvent) {
+      endEvent.preventDefault();
+      const releasedIndex = endEvent.target.dataset.index;
   
-    document.addEventListener('touchmove', onTouchMove);
-    document.addEventListener('touchend', onTouchEnd);
+      const draggedImage = document.querySelector(`[data-index="${touchedIndex}"]`);
+      const droppedImage = document.querySelector(`[data-index="${releasedIndex}"]`);
+  
+      if (draggedImage && droppedImage) {
+        const parent = draggedImage.parentNode;
+  
+        const temp = document.createElement('div');
+        parent.insertBefore(temp, draggedImage);
+        parent.insertBefore(draggedImage, droppedImage);
+        parent.insertBefore(droppedImage, temp);
+        parent.removeChild(temp);
+  
+        draggedImage.dataset.index = releasedIndex;
+        droppedImage.dataset.index = touchedIndex;
+      }
+  
+      event.target.style.transform = '';
+  
+      event.target.removeEventListener('touchmove', touchMove);
+      event.target.removeEventListener('touchend', touchEnd);
+    }
   }
   
   function addDragDropListeners(element) {
