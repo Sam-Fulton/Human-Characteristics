@@ -58,7 +58,10 @@ function dragStart(event) {
   
       for (const image of images) {
         if(image != draggedImage){
+          console.log("IMAGE: " + image);
           const rect = image.getBoundingClientRect();
+          console.log(x);
+          console.log(y);
           if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
               dropTarget = image;
               break;
