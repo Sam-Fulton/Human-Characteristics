@@ -32,66 +32,37 @@ function dragStart(event) {
 
   function touchStart(event) {
     event.preventDefault();
-    const touchedElement = event.target.closest('[data-index]');
-    const touchedIndex = touchedElement ? touchedElement.dataset.index : null;
-  
-    if (touchedIndex) {
-      const touch = event.touches[0];
-      touchedElement.initialTouchX = touch.pageX;
-      touchedElement.initialTouchY = touch.pageY;
-  
-      const parent = touchedElement.parentNode;
-  
-      parent.addEventListener('touchmove', touchMove);
-      parent.addEventListener('touchend', touchEnd);
-  
-      function touchMove(moveEvent) {
+    const touchedIndex = event.target.dataset.index;
+
+    event.target.addEventListener('touchmove', touchMove, { once: true });
+
+    function touchMove(moveEvent) {
         moveEvent.preventDefault();
+        const draggedIndex = touchedIndex;
+
         const touch = moveEvent.touches[0];
-  
-        const deltaX = touch.pageX - touchedElement.initialTouchX;
-        const deltaY = touch.pageY - touchedElement.initialTouchY;
-  
-        touchedElement.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
-      }
-  
-      function touchEnd(endEvent) {
-        endEvent.preventDefault();
-      
-        const releasedElement = endEvent.target;
-        const releasedIndex = releasedElement ? releasedElement.dataset.index : null;
-        
-        console.log("Released element: " + releasedElement);
-        console.log("RELEASED INDEX: " + releasedIndex);
-        console.log("touchedIndex: " + touchedIndex);
-      
-        if (releasedIndex && touchedIndex && releasedIndex !== touchedIndex) {
-          const draggedImage = document.querySelector(`[data-index="${touchedIndex}"]`);
-          const droppedImage = document.querySelector(`[data-index="${releasedIndex}"]`);
-      
-          if (draggedImage && droppedImage) {
-            const parent = draggedImage.parentNode;
-      
-            const temp = document.createElement('div');
-            parent.insertBefore(temp, draggedImage);
-            parent.insertBefore(draggedImage, droppedImage);
-            parent.insertBefore(droppedImage, temp);
-            parent.removeChild(temp);
-      
-            draggedImage.dataset.index = releasedIndex;
-            droppedImage.dataset.index = touchedIndex;
-          }
+        const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+        const droppedIndex = dropTarget.dataset.index;
+
+        if (draggedIndex !== droppedIndex) {
+            const draggedImage = document.querySelector(`[data-index="${draggedIndex}"]`);
+            const droppedImage = document.querySelector(`[data-index="${droppedIndex}"]`);
+
+            if (draggedImage && droppedImage) {
+                const parent = draggedImage.parentNode;
+
+                const temp = document.createElement('div');
+                parent.insertBefore(temp, draggedImage);
+                parent.insertBefore(draggedImage, droppedImage);
+                parent.insertBefore(droppedImage, temp);
+                parent.removeChild(temp);
+
+                draggedImage.dataset.index = droppedIndex;
+                droppedImage.dataset.index = draggedIndex;
+            }
         }
-      
-        touchedElement.style.transform = '';
-      
-        event.target.removeEventListener('touchmove', touchMove);
-        event.target.removeEventListener('touchend', touchEnd);
-      }
     }
-  }
-  
-  
+}
   
   function addDragDropListeners(element) {
     element.draggable = true;
