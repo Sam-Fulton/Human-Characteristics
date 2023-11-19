@@ -60,7 +60,7 @@ function dragStart(event) {
       console.log("Dragged Image : " + draggedImage)
       const droppedImage = document.querySelector(`[data-index="${releasedIndex}"]`);
       console.log("Dropped Image" + droppedImage);
-      
+
       if (draggedImage && droppedImage) {
         const parent = draggedImage.parentNode;
   
@@ -72,6 +72,9 @@ function dragStart(event) {
   
         draggedImage.dataset.index = releasedIndex;
         droppedImage.dataset.index = touchedIndex;
+
+        console.log("RELEASED INDEX :" + releasedIndex);
+        console.log("touchedIndex : " + touchedIndex);
       }
   
       event.target.style.transform = '';
