@@ -50,7 +50,7 @@ function dragStart(event) {
   
       const rankSvgDiv = draggedImage.closest('.rank-svg');
   
-      const images = rankSvgDiv.querySelectorAll('embed');
+      const images = Array.from(rankSvgDiv.querySelectorAll('embed')).filter(image => image !== draggedImage);
   
       let dropTarget;
   
@@ -64,7 +64,7 @@ function dragStart(event) {
   
       console.log("Drop target:", dropTarget);
   
-      if (dropTarget && dropTarget !== draggedImage) {
+      if (dropTarget) {
           const droppedIndex = dropTarget.dataset.index;
   
           console.log("Valid drop target found:", dropTarget);
@@ -87,6 +87,7 @@ function dragStart(event) {
   
       document.removeEventListener('touchmove', touchMove);
   }
+  
 }
   
   function addDragDropListeners(element) {
