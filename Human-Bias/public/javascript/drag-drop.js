@@ -50,8 +50,11 @@ function dragStart(event) {
   
       draggedImage.style.pointerEvents = 'none';
   
-      const dropTarget = document.elementsFromPoint(x, y)
-          .find(element => element.tagName.toLowerCase() === 'embed');
+      const elementsAtTouch = document.elementsFromPoint(x, y);
+  
+      console.log("Elements at touch:", elementsAtTouch);
+  
+      const dropTarget = elementsAtTouch.find(element => element.tagName.toLowerCase() === 'embed');
   
       draggedImage.style.pointerEvents = 'auto';
   
@@ -74,6 +77,8 @@ function dragStart(event) {
           dropTarget.dataset.index = draggedIndex;
   
           console.log("Images swapped successfully!");
+      } else {
+          console.log("No valid drop target found.");
       }
   
       document.removeEventListener('touchmove', touchMove);
