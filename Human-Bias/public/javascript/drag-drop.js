@@ -50,16 +50,20 @@ function dragStart(event) {
   
       const rankSvgDiv = draggedImage.closest('.rank-svg');
   
-      const images = Array.from(rankSvgDiv.querySelectorAll('embed')).filter(image => image !== draggedImage);
+      const images = rankSvgDiv.querySelectorAll('embed');
+
+      console.log("IMAGES: " + images);
   
       let dropTarget;
   
       for (const image of images) {
+        if(image != draggedImage){
           const rect = image.getBoundingClientRect();
           if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
               dropTarget = image;
               break;
           }
+        }
       }
   
       console.log("Drop target:", dropTarget);
@@ -87,7 +91,6 @@ function dragStart(event) {
   
       document.removeEventListener('touchmove', touchMove);
   }
-  
 }
   
   function addDragDropListeners(element) {
