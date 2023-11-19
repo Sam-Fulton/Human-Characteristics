@@ -48,15 +48,19 @@ function dragStart(event) {
   
       const draggedImage = document.querySelector(`[data-index="${draggedIndex}"]`);
   
-      draggedImage.style.pointerEvents = 'none';
+      const rankSvgDiv = draggedImage.closest('.rank-svg');
   
-      const elementsAtTouch = document.elementsFromPoint(x, y);
+      const images = rankSvgDiv.querySelectorAll('embed');
   
-      console.log("Elements at touch:", elementsAtTouch);
+      let dropTarget;
   
-      const dropTarget = elementsAtTouch.find(element => element.tagName.toLowerCase() === 'embed');
-  
-      draggedImage.style.pointerEvents = 'auto';
+      for (const image of images) {
+          const rect = image.getBoundingClientRect();
+          if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+              dropTarget = image;
+              break;
+          }
+      }
   
       console.log("Drop target:", dropTarget);
   
