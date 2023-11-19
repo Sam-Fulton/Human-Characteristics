@@ -33,7 +33,7 @@ function dragStart(event) {
   function touchStart(event) {
     event.preventDefault();
     const touchedIndex = event.target.dataset.index;
-    
+  
     const touch = event.touches[0];
     event.target.initialTouchX = touch.pageX;
     event.target.initialTouchY = touch.pageY;
@@ -54,10 +54,13 @@ function dragStart(event) {
     function touchEnd(endEvent) {
       endEvent.preventDefault();
       const releasedIndex = endEvent.target.dataset.index;
+      console.log(releasedIndex);
   
       const draggedImage = document.querySelector(`[data-index="${touchedIndex}"]`);
+      console.log("Dragged Image : " + draggedImage)
       const droppedImage = document.querySelector(`[data-index="${releasedIndex}"]`);
-  
+      console.log("Dropped Image" + droppedImage);
+      
       if (draggedImage && droppedImage) {
         const parent = draggedImage.parentNode;
   
@@ -72,7 +75,7 @@ function dragStart(event) {
       }
   
       event.target.style.transform = '';
-  
+
       event.target.removeEventListener('touchmove', touchMove);
       event.target.removeEventListener('touchend', touchEnd);
     }
