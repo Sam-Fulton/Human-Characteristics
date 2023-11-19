@@ -33,7 +33,7 @@ function loadRandomImages(numImages) {
 
           const embedElement = document.createElement('embed');
           embedElement.src = imageUrl;
-          embedElement.width = '15%';
+          embedElement.width = '20%';
           embedElement.height = 'auto';
 
           const xPosition = 10 + index * 20;
@@ -94,8 +94,6 @@ function restart(){
   const dropdown = document.getElementById('traitDropdown');
   dropdown.selectedIndex = -1;
   unlockDropdown(dropdown);
-  const selectedTrait = document.getElementById('selectedTrait');
-  selectedTrait.textContent = "Selected Trait: None";
   loadRandomImages(5);
   window.alert("Successfully restarted, please choice a trait and rank the images.");
 }

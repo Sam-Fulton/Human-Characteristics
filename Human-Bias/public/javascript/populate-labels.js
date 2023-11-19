@@ -27,8 +27,6 @@ async function populateDropdown() {
 function updateHeader() {
     const dropdown = document.getElementById('traitDropdown');
     lockDropdown(dropdown);
-    const selectedTrait = dropdown.options[dropdown.selectedIndex].text;
-    document.getElementById('selectedTrait').innerText = "Selected Trait: " + selectedTrait;
 }
 
 function lockDropdown(dropdown) {
