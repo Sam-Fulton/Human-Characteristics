@@ -57,35 +57,36 @@ function dragStart(event) {
   
       function touchEnd(endEvent) {
         endEvent.preventDefault();
-  
-        const parent = touchedElement.parentNode;
-  
-        const releasedElement = document.elementFromPoint(endEvent.changedTouches[0].clientX, endEvent.changedTouches[0].clientY);
+      
+        const releasedElement = endEvent.target;
         const releasedIndex = releasedElement ? releasedElement.dataset.index : null;
-  
+        
+        console.log("Released element: " + releasedElement);
         console.log("RELEASED INDEX: " + releasedIndex);
         console.log("touchedIndex: " + touchedIndex);
-  
+      
         if (releasedIndex && touchedIndex && releasedIndex !== touchedIndex) {
           const draggedImage = document.querySelector(`[data-index="${touchedIndex}"]`);
           const droppedImage = document.querySelector(`[data-index="${releasedIndex}"]`);
-  
+      
           if (draggedImage && droppedImage) {
+            const parent = draggedImage.parentNode;
+      
             const temp = document.createElement('div');
             parent.insertBefore(temp, draggedImage);
             parent.insertBefore(draggedImage, droppedImage);
             parent.insertBefore(droppedImage, temp);
             parent.removeChild(temp);
-  
+      
             draggedImage.dataset.index = releasedIndex;
             droppedImage.dataset.index = touchedIndex;
           }
         }
-  
+      
         touchedElement.style.transform = '';
-  
-        parent.removeEventListener('touchmove', touchMove);
-        parent.removeEventListener('touchend', touchEnd);
+      
+        event.target.removeEventListener('touchmove', touchMove);
+        event.target.removeEventListener('touchend', touchEnd);
       }
     }
   }
