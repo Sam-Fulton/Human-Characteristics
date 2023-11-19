@@ -46,38 +46,33 @@ function dragStart(event) {
       const x = touch.clientX;
       const y = touch.clientY;
   
-      const elementsAtTouch = document.elementsFromPoint(x, y).filter(
-          element => element !== event.target
-      );
-      console.log(elementsAtTouch);
-    
+      const draggedImage = document.querySelector(`[data-index="${draggedIndex}"]`);
   
-      const dropTarget = elementsAtTouch.find(
-          element => element.dataset && element.dataset.index
-      );
-        console.log("DROP TARGET: " + dropTarget);
-    
-        if (dropTarget) {
+      draggedImage.style.pointerEvents = 'none';
+  
+      const dropTarget = document.elementFromPoint(x, y);
+  
+      draggedImage.style.pointerEvents = 'auto';
+  
+      console.log("Drop target:", dropTarget);
+  
+      if (dropTarget && dropTarget !== draggedImage) {
           const droppedIndex = dropTarget.dataset.index;
-          console.log("DROPPED INDEX " + droppedIndex);
-          
-          if (draggedIndex !== droppedIndex) {
-              const draggedImage = document.querySelector(`[data-index="${draggedIndex}"]`);
-              const droppedImage = document.querySelector(`[data-index="${droppedIndex}"]`);
   
-              if (draggedImage && droppedImage) {
-                  const parent = draggedImage.parentNode;
+          console.log("Valid drop target found:", dropTarget);
   
-                  const temp = document.createElement('div');
-                  parent.insertBefore(temp, draggedImage);
-                  parent.insertBefore(draggedImage, droppedImage);
-                  parent.insertBefore(droppedImage, temp);
-                  parent.removeChild(temp);
+          const parent = draggedImage.parentNode;
   
-                  draggedImage.dataset.index = droppedIndex;
-                  droppedImage.dataset.index = draggedIndex;
-              }
-          }
+          const temp = document.createElement('div');
+          parent.insertBefore(temp, draggedImage);
+          parent.insertBefore(draggedImage, dropTarget);
+          parent.insertBefore(dropTarget, temp);
+          parent.removeChild(temp);
+  
+          draggedImage.dataset.index = droppedIndex;
+          dropTarget.dataset.index = draggedIndex;
+  
+          console.log("Images swapped successfully!");
       }
   
       document.removeEventListener('touchmove', touchMove);
