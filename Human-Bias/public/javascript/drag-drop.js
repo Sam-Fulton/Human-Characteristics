@@ -40,8 +40,10 @@ function dragStart(event) {
       touchedElement.initialTouchX = touch.pageX;
       touchedElement.initialTouchY = touch.pageY;
   
-      event.target.addEventListener('touchmove', touchMove);
-      event.target.addEventListener('touchend', touchEnd);
+      const parent = touchedElement.parentNode;
+  
+      parent.addEventListener('touchmove', touchMove);
+      parent.addEventListener('touchend', touchEnd);
   
       function touchMove(moveEvent) {
         moveEvent.preventDefault();
@@ -55,6 +57,9 @@ function dragStart(event) {
   
       function touchEnd(endEvent) {
         endEvent.preventDefault();
+  
+        const parent = touchedElement.parentNode;
+  
         const releasedElement = document.elementFromPoint(endEvent.changedTouches[0].clientX, endEvent.changedTouches[0].clientY);
         const releasedIndex = releasedElement ? releasedElement.dataset.index : null;
   
@@ -66,19 +71,26 @@ function dragStart(event) {
           const droppedImage = document.querySelector(`[data-index="${releasedIndex}"]`);
   
           if (draggedImage && droppedImage) {
-            const tempSrc = draggedImage.src;
-            draggedImage.src = droppedImage.src;
-            droppedImage.src = tempSrc;
+            const temp = document.createElement('div');
+            parent.insertBefore(temp, draggedImage);
+            parent.insertBefore(draggedImage, droppedImage);
+            parent.insertBefore(droppedImage, temp);
+            parent.removeChild(temp);
+  
+            draggedImage.dataset.index = releasedIndex;
+            droppedImage.dataset.index = touchedIndex;
           }
         }
   
         touchedElement.style.transform = '';
   
-        event.target.removeEventListener('touchmove', touchMove);
-        event.target.removeEventListener('touchend', touchEnd);
+        parent.removeEventListener('touchmove', touchMove);
+        parent.removeEventListener('touchend', touchEnd);
       }
     }
   }
+  
+  
   
   function addDragDropListeners(element) {
     element.draggable = true;
