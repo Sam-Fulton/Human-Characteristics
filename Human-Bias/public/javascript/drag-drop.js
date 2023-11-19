@@ -34,6 +34,8 @@ function dragStart(event) {
     event.preventDefault();
     const touchedIndex = event.target.dataset.index;
 
+    console.log(touchedIndex);
+
     event.target.addEventListener('touchmove', touchMove, { once: true });
 
     function touchMove(moveEvent) {
@@ -44,6 +46,8 @@ function dragStart(event) {
         const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
         const droppedIndex = dropTarget.dataset.index;
 
+        console.log(droppedIndex);
+        
         if (draggedIndex !== droppedIndex) {
             const draggedImage = document.querySelector(`[data-index="${draggedIndex}"]`);
             const droppedImage = document.querySelector(`[data-index="${droppedIndex}"]`);
