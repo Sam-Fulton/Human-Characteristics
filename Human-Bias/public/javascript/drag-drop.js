@@ -50,7 +50,8 @@ function dragStart(event) {
   
       draggedImage.style.pointerEvents = 'none';
   
-      const dropTarget = document.elementFromPoint(x, y);
+      const dropTarget = document.elementsFromPoint(x, y)
+          .find(element => element.tagName.toLowerCase() === 'embed');
   
       draggedImage.style.pointerEvents = 'auto';
   
