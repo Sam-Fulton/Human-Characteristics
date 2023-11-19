@@ -33,9 +33,10 @@ function loadRandomImages(numImages) {
 
           const embedElement = document.createElement('embed');
           embedElement.src = imageUrl;
-          embedElement.width = '100px';
+          embedElement.width = '15%';
+          embedElement.height = 'auto';
 
-          const xPosition = 30 + index * 10;
+          const xPosition = 10 + index * 20;
           embedElement.setAttribute('x', `${xPosition}%`);
 
           embedElement.dataset.index = index;

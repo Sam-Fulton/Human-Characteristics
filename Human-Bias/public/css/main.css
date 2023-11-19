@@ -1,103 +1,133 @@
 body {
-    font-family: 'Roboto', sans-serif;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    margin: 0;
-  }
-  
-  body::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    background: url('../assets/background.jpg') center/cover no-repeat;
-    opacity: 0.4;
-  }
-   
- 
- .restart-button {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    padding: 10px;
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: background-color 0.3s ease;
+  font-family: 'Roboto', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  margin: 0;
+}
 
-  }
-  .restart-button:hover {
-    background-color: #0056b3;
-  }
+body::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: url('../assets/background.jpg') center/cover no-repeat;
+  opacity: 0.4;
+}
 
-  .dropdown-container {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    margin: 10px;
-    text-align: right;
-  }
-  
-  label {
-    margin-right: 10px;
-  }
+.restart-button {
+  position: absolute;
+  top: 2%;
+  left: 2%;
+  padding: 2%;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
 
-  .selected-trait {
-    position: absolute;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    margin: 10px;
-  }
-  
-  .rank-container {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    width: 80%;
-    position: absolute;
-    justify-content: center;
-  }
-  
-  .rank-svg {
-    width: 100%;
-    max-width: 1200px; 
-    position: relative;
-    align-items: center;
-    justify-content: center;
-    display: flex;
-  }
-  
-  .rank-label {
-    position: relative;
-    white-space: nowrap;
-    font-size: 40px;
-  }
-  
-  .rank-image {
-    max-width: 100px;
-    height: auto;
-    cursor: move;
-  }
-  
-  .reload-button {
-    position: absolute;
-    bottom: 30%;
-    padding: 10px 20px;
-    background-color: #28a745;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: background-color 0.3s ease;
-  }
+.restart-button:hover {
+  background-color: #0056b3;
+}
 
-  .reload-button:hover {
-    background-color: #218838;
-  }
+.dropdown-container {
+  position: absolute;
+  top: 2%;
+  right: 2%;
+  margin: 2%;
+  text-align: right;
+}
+
+#traitDropdown {
+  font-size: 16px;
+  padding: 8px;
+  width: 150px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #333;
+}
+
+#traitDropdown:hover {
+  border-color: #007bff;
+}
+
+#traitDropdown:focus {
+  outline: none;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+#dropdownLabel{
+  font-weight: bold;
+  margin-right: 10px;
+  font-size: 16px;
+  color: #333;
+}
+
+label {
+  margin-right: 2%;
+}
+
+.selected-trait {
+  font-size: 2em;
+  font-weight: bold;
+  position: absolute;
+  top: 2%;
+  left: 50%;
+  color: #333;
+  transform: translateX(-50%);
+}
+
+.rank-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 80%;
+  position: absolute;
+  justify-content: center;
+}
+
+.rank-svg {
+  width: 100%;
+  max-width: 80%;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+}
+
+.rank-label {
+  font-weight: bold;
+  position: relative;
+  font-size: 4vw;
+  color: #333;
+}
+
+.rank-image {
+  max-width: 20vw;
+  height: auto;
+  cursor: move;
+}
+
+.reload-button {
+  position: absolute;
+  bottom: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2% 4%;
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.reload-button:hover {
+  background-color: #218838;
+}
