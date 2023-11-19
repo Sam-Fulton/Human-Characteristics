@@ -58,24 +58,17 @@ function dragStart(event) {
         const releasedElement = document.elementFromPoint(endEvent.changedTouches[0].clientX, endEvent.changedTouches[0].clientY);
         const releasedIndex = releasedElement ? releasedElement.dataset.index : null;
   
-        console.log("RELEASED INDEX :" + releasedIndex);
-        console.log("touchedIndex : " + touchedIndex);
+        console.log("RELEASED INDEX: " + releasedIndex);
+        console.log("touchedIndex: " + touchedIndex);
   
-        if (releasedIndex && touchedIndex) {
+        if (releasedIndex && touchedIndex && releasedIndex !== touchedIndex) {
           const draggedImage = document.querySelector(`[data-index="${touchedIndex}"]`);
           const droppedImage = document.querySelector(`[data-index="${releasedIndex}"]`);
   
           if (draggedImage && droppedImage) {
-            const parent = draggedImage.parentNode;
-  
-            const temp = document.createElement('div');
-            parent.insertBefore(temp, draggedImage);
-            parent.insertBefore(draggedImage, droppedImage);
-            parent.insertBefore(droppedImage, temp);
-            parent.removeChild(temp);
-  
-            draggedImage.dataset.index = releasedIndex;
-            droppedImage.dataset.index = touchedIndex;
+            const tempSrc = draggedImage.src;
+            draggedImage.src = droppedImage.src;
+            droppedImage.src = tempSrc;
           }
         }
   
