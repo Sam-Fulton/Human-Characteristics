@@ -61,6 +61,7 @@ function dragStart(event) {
                 droppedImage.dataset.index = draggedIndex;
             }
         }
+        document.removeEventListener('touchmove', touchMove);
     }
 }
   
