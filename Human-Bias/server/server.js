@@ -62,7 +62,7 @@ app.get('/get-user-token', (req, res) => {
 app.get('/authorize', (req, res) => {
   const authUrl = oauth2Client.generateAuthUrl({
     access_type: 'offline',
-    scope: [DRIVE_SCOPE, 'profile', 'email']
+    scope: ['profile', 'email']
   });
 
   res.redirect(authUrl);
