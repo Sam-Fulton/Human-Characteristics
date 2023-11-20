@@ -196,7 +196,7 @@ app.get('/all-images', async (req, res) => {
     }
 
     const data = await response.json();
-    res.json(data.filter(file => file.type === 'file' && file.name.match(/\.(png)$/i)));
+    res.json(data.filter(file => file.type === 'file'));
   } catch (error) {
     console.error('Error fetching directory contents from GitHub:', error);
     res.status(500).json({ error: 'Internal Server Error' });
